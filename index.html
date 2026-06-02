@@ -256,7 +256,7 @@
             renderTable();
         });
 
-        // 🕐 ฟังก์ชันฟังก์ชันนับถอยหลังจริงสู่เป้าหมาย (7 ส.ค. 2026 เวลา 08:00 น.)
+        // 🕐 ฟังก์ชันนับถอยหลังจริงสู่เป้าหมาย (7 ส.ค. 2026 เวลา 08:00 น.)
         function initCountdown() {
             const targetDate = new Date("August 7, 2026 08:00:00").getTime();
 
@@ -308,16 +308,16 @@
 
         function renderTable() {
             const tbody = document.getElementById('schedule-tbody');
+            if (!tbody) return; // ป้องกันข้อผิดพลาดหากหาตัวตารางไม่เจอ
+            tbody.innerHTML = ''; // เคลียร์ตารางเก่าก่อนวาดใหม่ป้องกันข้อมูลซ้อน
             
             rawSchedule.forEach(item => {
-                const userState = remoteData[item.id] || { task: '', progress: '', status: 'pending' };
-                let tr = document.getElementById(`row-${item.id}`);
+                // แก้ไขบั๊กจุดสำคัญ: ตรวจสอบความปลอดภัยก่อนดึงข้อมูลจากคลาวด์ ป้องกันตารางหายเมื่อฐานข้อมูลว่าง
+                const userState = (remoteData && remoteData[item.id]) ? remoteData[item.id] : { task: '', progress: '', status: 'pending' };
                 
-                if (!tr) {
-                    tr = document.createElement('tr');
-                    tr.id = `row-${item.id}`;
-                    tbody.appendChild(tr);
-                }
+                let tr = document.createElement('tr');
+                tr.id = `row-${item.id}`;
+                tbody.appendChild(tr);
                 
                 if (item.note === 'เรียน') tr.className = 'row-study';
                 else if (item.hours === 0) tr.className = 'row-special';

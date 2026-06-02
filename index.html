@@ -71,6 +71,14 @@
         .progress-container { background-color: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-top: 12px; overflow: hidden; }
         .progress-bar { background-color: var(--secondary); height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
+        /* User Mode Badge */
+        .mode-badge {
+            display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-top: 10px; font-family: 'Chakra Petch', sans-serif;
+        }
+        .mode-viewer-style { background-color: rgba(255, 255, 255, 0.15); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+        .mode-editor-style { background-color: #fef08a; color: #854d0e; animation: pulse-badge 2s infinite; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        @keyframes pulse-badge { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
+
         /* Action Buttons Toolbar */
         .toolbar {
             display: flex;
@@ -129,6 +137,14 @@
         }
         .input-task:focus, .textarea-progress:focus { border-color: var(--secondary); background-color: #fff; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
         
+        /* สไตล์พิเศษสำหรับ Viewer Mode (ล็อกให้อ่านได้อย่างเดียวแบบเนียนตา) */
+        .input-task:disabled, .textarea-progress:disabled {
+            background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; cursor: default; padding: 0; box-shadow: none !important; resize: none;
+        }
+        .select-status:disabled {
+            border-color: transparent !important; cursor: default; -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-left: 4px;
+        }
+
         .select-status { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; width: 100%; cursor: pointer; transition: all 0.2s; }
         .status-pending { background-color: #f1f5f9; color: #475569; }
         .status-ongoing { background-color: #fef9c3; color: #a16207; border-color: #fef08a; }
@@ -151,7 +167,8 @@
     <header>
         <div class="container">
             <h1>🏆 World GreenMech Contest 2026</h1>
-            <p><span class="live-indicator"></span> แดชบอร์ดบันทึกและติดตามความก้าวหน้าการฝึกซ้อมของทีม PT Avatar GreenTech </p>
+            <p><span class="live-indicator"></span> แดชบอร์ดบันทึกและติดตามความก้าวหน้าการฝึกซ้อมของทีม PT Avatar GreenTech</p>
+            <div id="user-mode-tag" class="mode-badge mode-viewer-style">👁️ โหมดผู้เข้าชม (อ่านอย่างเดียว)</div>
         </div>
     </header>
 
@@ -176,7 +193,7 @@
             </div>
         </div>
 
-        <div class="toolbar">
+        <div class="toolbar" id="toolbar-area" style="display: none;">
             <button class="btn btn-sync" onclick="exportBackupCode()">📥 สำรองข้อมูล (Backup)</button>
             <button class="btn btn-sync" onclick="importBackupCode()">📤 นำเข้าข้อมูล (Restore)</button>
             <button class="btn btn-export" onclick="exportToCSV()">📊 ส่งออกไฟล์ Excel (CSV)</button>
@@ -237,7 +254,7 @@
             { id: 32, date: "12 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "2. สร้างและพัฒนา" },
             { id: 33, date: "13 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
             { id: 34, date: "14 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 35, date: "15 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 35, date: "15 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "3. ทดสอบและปรับปรุง" },
             { id: 36, date: "16 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 37, date: "17 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 38, date: "18 ก.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
@@ -265,9 +282,27 @@
             { id: 60, date: "9 ส.ค.", day: "อาทิตย์", time: "แข่งขัน", hours: 0, note: "วันแข่งขัน", phase: "🔥 แข่งขัน" }
         ];
 
+        // ตรวจสอบพารามิเตอร์ URL ว่าใช่โหมดแก้ไขหรือไม่ 
+        const urlParams = new URLSearchParams(window.location.search);
+        const isEditMode = urlParams.get('mode') === 'edit';
+
         let localData = JSON.parse(localStorage.getItem('greenmech_local_data')) || {};
 
         document.addEventListener("DOMContentLoaded", () => {
+            const modeTag = document.getElementById('user-mode-tag');
+            const toolbar = document.getElementById('toolbar-area');
+            
+            // ตั้งค่าหน้าตาเว็บตามสิทธิ์การเข้าใช้งาน
+            if (isEditMode) {
+                modeTag.innerText = "✏️ โหมดแก้ไขข้อมูล (ทีมงาน PT Avatar)";
+                modeTag.className = "mode-badge mode-editor-style";
+                toolbar.style.display = "flex"; // แสดงปุ่มทูลบาร์สำหรับทีมงาน
+            } else {
+                modeTag.innerText = "👁️ โหมดผู้เข้าชม (อ่านอย่างเดียว)";
+                modeTag.className = "mode-badge mode-viewer-style";
+                toolbar.style.display = "none";  // ซ่อนปุ่มทูลบาร์จากผู้ชมภายนอก
+            }
+
             renderTable();
             initCountdown();
             updateMetrics();
@@ -321,14 +356,17 @@
                 if (userState.status === 'ongoing') statusClass = 'status-ongoing';
                 if (userState.status === 'done') statusClass = 'status-done';
 
+                // กำหนดตัวแปร ล็อก/ปลดล็อก ช่องกรอกข้อมูลตามสิทธิ์
+                const disabledAttr = isEditMode ? '' : 'disabled';
+
                 tr.innerHTML = `
                     <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${item.day}</span></td>
                     <td><span style="font-weight:500;">${item.time}</span><br>${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted);">(${item.hours} ชม.)</span>`:''}<br>${badgeHTML}</td>
                     <td><span class="phase-indicator">${item.phase}</span></td>
-                    <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="ระบุเป้าหมาย..." value="${userState.task || ''}" onchange="saveData(${item.id}, 'task', this.value)"></td>
-                    <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="พิมพ์สรุปผล..." onchange="saveData(${item.id}, 'progress', this.value)">${userState.progress || ''}</textarea></td>
+                    <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="${isEditMode ? 'ระบุเป้าหมาย...' : '-'}" value="${userState.task || ''}" ${disabledAttr} onchange="saveData(${item.id}, 'task', this.value)"></td>
+                    <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="${isEditMode ? 'พิมพ์สรุปผล...' : '-'}" ${disabledAttr} onchange="saveData(${item.id}, 'progress', this.value)">${userState.progress || ''}</textarea></td>
                     <td>
-                        <select id="select-status-${item.id}" class="select-status ${statusClass}" onchange="saveData(${item.id}, 'status', this.value)">
+                        <select id="select-status-${item.id}" class="select-status ${statusClass}" ${disabledAttr} onchange="saveData(${item.id}, 'status', this.value)">
                             <option value="pending" class="status-pending" ${userState.status === 'pending' ? 'selected' : ''}>⏳ ยังไม่เริ่ม</option>
                             <option value="ongoing" class="status-ongoing" ${userState.status === 'ongoing' ? 'selected' : ''}>🔄 กำลังทำ</option>
                             <option value="done" class="status-done" ${userState.status === 'done' ? 'selected' : ''}>✅ สำเร็จแล้ว</option>
@@ -340,6 +378,7 @@
         }
 
         function saveData(id, field, value) {
+            if (!isEditMode) return; // ป้องกันการเซฟหากไม่ใช่โหมดแก้ไข
             if (!localData[id]) localData[id] = { task: '', progress: '', status: 'pending' };
             localData[id][field] = value;
             
@@ -386,9 +425,8 @@
             setTimeout(() => { toast.style.display = 'none'; }, 2000);
         }
 
-        /* Feature เพิ่มเติม 1: ระบบแปลงและส่งออกข้อมูลเป็นไฟล์ Excel (.csv) */
         function exportToCSV() {
-            let csvContent = "\uFEFF"; // รองรับภาษาไทยใน Excel
+            let csvContent = "\uFEFF"; 
             csvContent += "วันที่,วัน,เวลาซ้อม,ชั่วโมง,ระยะเป้าหมาย,งานที่วางแผน,รายงานผลการซ้อม,สถานะ\n";
 
             rawSchedule.forEach(item => {
@@ -397,7 +435,6 @@
                 if(userState.status === 'ongoing') statusText = "กำลังทำ";
                 if(userState.status === 'done') statusText = "สำเร็จแล้ว";
 
-                // จัดการข้อความเพื่อไม่ให้สูตรไฟล์พัง
                 let task = (userState.task || '').replace(/"/g, '""');
                 let progress = (userState.progress || '').replace(/"/g, '""');
 
@@ -416,18 +453,17 @@
             showToast("📊 ดาวน์โหลดรายงาน Excel เรียบร้อย!");
         }
 
-        /* Feature เพิ่มเติม 2: ระบบสำรองข้อมูลข้ามเครื่องด้วยโค้ดรหัสผ่าน */
         function exportBackupCode() {
             const dataString = btoa(unescape(encodeURIComponent(JSON.stringify(localData))));
             navigator.clipboard.writeText(dataString).then(() => {
-                alert("📥 คัดลอกรหัสสำรองข้อมูลลงคลิปบอร์ดแล้ว! ส่งรหัสนี้เข้าแชตไลน์เก็บไว้เพื่อนำไปกู้คืนบนเครื่องอื่นได้เลยครับ");
+                alert("📥 คัดลอกรหัสอัปเดตข้อมูลของทีมเรียบร้อยแล้ว! นำรหัสนี้ไปส่งต่อให้คุณครูหรือคนนอกทีมเพื่ออัปเดตหน้าจอโหมดผู้ชมได้เลยครับ");
             }).catch(() => {
                 prompt("คัดลอกรหัสสำรองข้อมูลด้านล่างนี้:", dataString);
             });
         }
 
         function importBackupCode() {
-            const code = prompt("📤 วางรหัสสำรองข้อมูล (Backup Code) ที่คุณเคยคัดลอกไว้ เพื่อดึงข้อมูลกลับคืนมา:");
+            const code = prompt("📤 วางรหัสข้อมูล (Data Code) ล่าสุดจากทีมงานเพื่ออัปเดตตารางหน้าจอเครื่องนี้:");
             if (!code) return;
             try {
                 const decodedData = JSON.parse(decodeURIComponent(escape(atob(code))));

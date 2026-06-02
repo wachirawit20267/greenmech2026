@@ -249,7 +249,7 @@
 
         let remoteData = {};
 
-        // ⚡ เพิ่มคำสั่งดักจับให้ระบบรอโหลดหน้าเว็บ (DOM) เสร็จสมบูรณ์ 100% ก่อนเริ่มรันฟังก์ชันตาราง เพื่อแก้ปัญหาตารางหายบน iPad
+        // ระบบรอโหลดโครงสร้างหน้าเว็บ (DOM) ให้เสร็จสมบูรณ์ร้อยเปอร์เซ็นต์ก่อนเริ่มรันงาน
         document.addEventListener("DOMContentLoaded", () => {
             dbRef.on('value', (snapshot) => {
                 remoteData = snapshot.val() || {};
@@ -257,7 +257,6 @@
                 renderTable();
             });
             
-            // รันระบบนับถอยหลัง
             initCountdown();
         });
 
@@ -310,11 +309,10 @@
 
         function renderTable() {
             const tbody = document.getElementById('schedule-tbody');
-            if (!tbody) return; // ป้องกันข้อผิดพลาดหากตัวแปรตารางในหน้าเว็บยังโหลดไม่ขึ้น
-            tbody.innerHTML = ''; // เคลียร์ตารางเก่าก่อนวาดใหม่ ป้องกันข้อมูลซ้ำซ้อน
+            if (!tbody) return; 
+            tbody.innerHTML = ''; 
             
             rawSchedule.forEach(item => {
-                // ระบบป้องกัน: ถึงแม้ฐานข้อมูลคลาวด์จะว่างเปล่า ก็จะบังคับให้สร้างแถวข้อมูลเปล่าๆ ขึ้นมาแสดงโชว์เสมอ
                 const userState = (remoteData && remoteData[item.id]) ? remoteData[item.id] : { task: '', progress: '', status: 'pending' };
                 
                 let tr = document.createElement('tr');

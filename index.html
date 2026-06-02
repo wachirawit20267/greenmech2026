@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚡ Realtime & Countdown - World GreenMech Contest 2026</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
 
@@ -131,7 +127,7 @@
     <header>
         <div class="container">
             <h1>🏆 World GreenMech Contest 2026</h1>
-            <p><span class="live-indicator"></span>ระบบตารางซ้อมออนไลน์ อัปเดตข้อมูลทีมแบบ Real-time</p>
+            <p><span class="live-indicator"></span>ระบบตารางซ้อมอัจฉริยะ อัปเดตและคำนวณผลอัตโนมัติ</p>
         </div>
     </header>
 
@@ -173,16 +169,9 @@
         </div>
     </main>
 
-    <div class="toast-notify" id="toast-msg">✓ อัปเดตข้อมูลเข้าคลาวด์เรียบร้อย!</div>
+    <div class="toast-notify" id="toast-msg">✓ บันทึกการเปลี่ยนแปลงเรียบร้อย!</div>
 
     <script>
-        const firebaseConfig = {
-            databaseURL: "https://greenmech-2026-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const dbRef = firebase.database().ref('greenmech_realtime_schedule');
-
         const rawSchedule = [
             { id: 1, date: "11 มิ.ย.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
             { id: 2, date: "12 มิ.ย.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
@@ -246,19 +235,13 @@
             { id: 60, date: "9 ส.ค.", day: "อาทิตย์", time: "แข่งขัน", hours: 0, note: "วันแข่งขัน", phase: "🔥 แข่งขัน" }
         ];
 
-        let remoteData = {};
+        // ใช้ LocalStorage เพื่อบันทึกข้อมูลในเครื่องแทนการโดนบล็อกภายนอก
+        let localData = JSON.parse(localStorage.getItem('greenmech_local_data')) || {};
 
-        // ลำดับขั้นตอน: วาดตารางเปล่าขึ้นมาก่อนทันทีที่เข้าเว็บเพื่อป้องกันอาการค้าง
         document.addEventListener("DOMContentLoaded", () => {
-            renderInitialTable();
+            renderTable();
             initCountdown();
-
-            // หลังจากวาดตารางเสร็จ ค่อยไปดึงข้อมูลจาก Firebase มาหยอดเติมลงช่อง
-            dbRef.on('value', (snapshot) => {
-                remoteData = snapshot.val() || {};
-                updateMetrics();
-                fillRemoteData();
-            });
+            updateMetrics();
         });
 
         function initCountdown() {
@@ -267,7 +250,7 @@
                 const now = new Date().getTime();
                 const difference = targetDate - now;
                 if (difference < 0) {
-                    document.getElementById("countdown-timer").innerText = "🔥 ถึงวันแข่งขันแล้ว!";
+                    document.getElementById("countdown-timer").innerText = "🏆 ถึงวันแข่งแล้ว!";
                     return;
                 }
                 const days = Math.floor(difference / (1000 * 60 * 60 * 24));
@@ -284,12 +267,14 @@
             }, 1000);
         }
 
-        function renderInitialTable() {
+        function renderTable() {
             const tbody = document.getElementById('schedule-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
 
             rawSchedule.forEach(item => {
+                const userState = localData[item.id] || { task: '', progress: '', status: 'pending' };
+                
                 let tr = document.createElement('tr');
                 tr.id = `row-${item.id}`;
                 
@@ -303,17 +288,21 @@
                 else if (item.note === 'เตรียมแข่งขัน') badgeHTML = '<span class="badge badge-travel">วันเดินทาง ✈️</span>';
                 else if (item.note === 'วันแข่งขัน') badgeHTML = '<span class="badge badge-comp">วันแข่งขัน 🏆</span>';
 
+                let statusClass = 'status-pending';
+                if (userState.status === 'ongoing') statusClass = 'status-ongoing';
+                if (userState.status === 'done') statusClass = 'status-done';
+
                 tr.innerHTML = `
                     <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${item.day}</span></td>
                     <td><span style="font-weight:500;">${item.time}</span><br>${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted);">(${item.hours} ชม.)</span>`:''}<br>${badgeHTML}</td>
                     <td><span class="phase-indicator">${item.phase}</span></td>
-                    <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="ระบุเป้าหมาย..." onblur="sendToFirebase(${item.id}, 'task', this.value)"></td>
-                    <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="พิมพ์สรุปผล..." onblur="sendToFirebase(${item.id}, 'progress', this.value)"></textarea></td>
+                    <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="ระบุเป้าหมาย..." value="${userState.task || ''}" onchange="saveData(${item.id}, 'task', this.value)"></td>
+                    <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="พิมพ์สรุปผล..." onchange="saveData(${item.id}, 'progress', this.value)">${userState.progress || ''}</textarea></td>
                     <td>
-                        <select id="select-status-${item.id}" class="select-status status-pending" onchange="updateStatusStyle(${item.id}, this.value); sendToFirebase(${item.id}, 'status', this.value)">
-                            <option value="pending" class="status-pending">⏳ ยังไม่เริ่ม</option>
-                            <option value="ongoing" class="status-ongoing">🔄 กำลังทำ</option>
-                            <option value="done" class="status-done">✅ สำเร็จแล้ว</option>
+                        <select id="select-status-${item.id}" class="select-status ${statusClass}" onchange="saveData(${item.id}, 'status', this.value)">
+                            <option value="pending" class="status-pending" ${userState.status === 'pending' ? 'selected' : ''}>⏳ ยังไม่เริ่ม</option>
+                            <option value="ongoing" class="status-ongoing" ${userState.status === 'ongoing' ? 'selected' : ''}>🔄 กำลังทำ</option>
+                            <option value="done" class="status-done" ${userState.status === 'done' ? 'selected' : ''}>✅ สำเร็จแล้ว</option>
                         </select>
                     </td>
                 `;
@@ -321,30 +310,25 @@
             });
         }
 
-        function fillRemoteData() {
-            rawSchedule.forEach(item => {
-                const userState = remoteData[item.id] || { task: '', progress: '', status: 'pending' };
-                
-                const inputTask = document.getElementById(`input-task-${item.id}`);
-                const textProg = document.getElementById(`textarea-progress-${item.id}`);
-                const selectStat = document.getElementById(`select-status-${item.id}`);
+        function saveData(id, field, value) {
+            if (!localData[id]) localData[id] = { task: '', progress: '', status: 'pending' };
+            localData[id][field] = value;
+            
+            localStorage.setItem('greenmech_local_data', JSON.stringify(localData));
+            
+            if (field === 'status') {
+                const selectStat = document.getElementById(`select-status-${id}`);
+                selectStat.className = 'select-status';
+                if (value === 'ongoing') selectStat.classList.add('status-ongoing');
+                else if (value === 'done') selectStat.classList.add('status-done');
+                else selectStat.classList.add('status-pending');
+            }
 
-                if (inputTask && document.activeElement !== inputTask) inputTask.value = userState.task || '';
-                if (textProg && document.activeElement !== textProg) textProg.value = userState.progress || '';
-                if (selectStat) {
-                    selectStat.value = userState.status || 'pending';
-                    updateStatusStyle(item.id, userState.status || 'pending');
-                }
-            });
-        }
+            updateMetrics();
 
-        function updateStatusStyle(id, status) {
-            const selectStat = document.getElementById(`select-status-${id}`);
-            if (!selectStat) return;
-            selectStat.className = 'select-status';
-            if (status === 'ongoing') selectStat.classList.add('status-ongoing');
-            else if (status === 'done') selectStat.classList.add('status-done');
-            else selectStat.classList.add('status-pending');
+            const toast = document.getElementById('toast-msg');
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 1200);
         }
 
         function updateMetrics() {
@@ -353,7 +337,7 @@
             let actualHoursEarned = 0;
 
             trainingDays.forEach(day => {
-                const dayState = remoteData[day.id] || { status: 'pending' };
+                const dayState = localData[day.id] || { status: 'pending' };
                 if (dayState.status === 'done') {
                     completedDays++;
                     actualHoursEarned += day.hours;
@@ -365,16 +349,6 @@
             document.getElementById('stat-progress-bar').style.width = percent + '%';
             document.getElementById('stat-days-count').innerText = completedDays + ' / ' + trainingDays.length + ' วัน';
             document.getElementById('stat-hours-count').innerText = actualHoursEarned.toFixed(1) + ' / 200.5 ชม.';
-        }
-
-        function sendToFirebase(id, field, value) {
-            dbRef.child(id).update({ [field]: value }, (err) => {
-                if(!err) {
-                    const toast = document.getElementById('toast-msg');
-                    toast.style.display = 'block';
-                    setTimeout(() => { toast.style.display = 'none'; }, 1500);
-                }
-            });
         }
     </script>
 </body>

@@ -66,7 +66,6 @@
         .stat-card h3 { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 10px; }
         .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--primary-dark); font-family: 'Chakra Petch', sans-serif; }
         
-        /* สไตล์พิเศษสำหรับการ์ดนับถอยหลัง */
         .card-countdown {
             background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
             border: 1px solid #fecdd3;
@@ -249,29 +248,28 @@
 
         let remoteData = {};
 
+        // ลำดับขั้นตอน: วาดตารางเปล่าขึ้นมาก่อนทันทีที่เข้าเว็บเพื่อป้องกันอาการค้าง
         document.addEventListener("DOMContentLoaded", () => {
-            // ดึงข้อมูล Firebase และคอยตรวจจับ Realtime
+            renderInitialTable();
+            initCountdown();
+
+            // หลังจากวาดตารางเสร็จ ค่อยไปดึงข้อมูลจาก Firebase มาหยอดเติมลงช่อง
             dbRef.on('value', (snapshot) => {
                 remoteData = snapshot.val() || {};
                 updateMetrics();
-                renderTable();
+                fillRemoteData();
             });
-            
-            initCountdown();
         });
 
         function initCountdown() {
             const targetDate = new Date("August 7, 2026 08:00:00").getTime();
-
             setInterval(() => {
                 const now = new Date().getTime();
                 const difference = targetDate - now;
-
                 if (difference < 0) {
-                    document.getElementById("countdown-timer").innerText = "🔥 ถึงวันแข่งขันแล้ว! โชคดีลุยเต็มที่ 🏆";
+                    document.getElementById("countdown-timer").innerText = "🔥 ถึงวันแข่งขันแล้ว!";
                     return;
                 }
-
                 const days = Math.floor(difference / (1000 * 60 * 60 * 24));
                 const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
@@ -284,6 +282,69 @@
                     ${seconds}<span class="countdown-unit">วิ</span>
                 `;
             }, 1000);
+        }
+
+        function renderInitialTable() {
+            const tbody = document.getElementById('schedule-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            rawSchedule.forEach(item => {
+                let tr = document.createElement('tr');
+                tr.id = `row-${item.id}`;
+                
+                if (item.note === 'เรียน') tr.className = 'row-study';
+                else if (item.hours === 0) tr.className = 'row-special';
+                else if (item.day === 'เสาร์' || item.day === 'อาทิตย์') tr.className = 'row-weekend';
+
+                let badgeHTML = '';
+                if (item.note === 'เรียน') badgeHTML = '<span class="badge badge-study">มีเรียนพิเศษ</span>';
+                else if (item.note === 'ซ้อมวันสุดท้าย') badgeHTML = '<span class="badge badge-final">ซ้อมวันสุดท้าย ⭐</span>';
+                else if (item.note === 'เตรียมแข่งขัน') badgeHTML = '<span class="badge badge-travel">วันเดินทาง ✈️</span>';
+                else if (item.note === 'วันแข่งขัน') badgeHTML = '<span class="badge badge-comp">วันแข่งขัน 🏆</span>';
+
+                tr.innerHTML = `
+                    <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${item.day}</span></td>
+                    <td><span style="font-weight:500;">${item.time}</span><br>${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted);">(${item.hours} ชม.)</span>`:''}<br>${badgeHTML}</td>
+                    <td><span class="phase-indicator">${item.phase}</span></td>
+                    <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="ระบุเป้าหมาย..." onblur="sendToFirebase(${item.id}, 'task', this.value)"></td>
+                    <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="พิมพ์สรุปผล..." onblur="sendToFirebase(${item.id}, 'progress', this.value)"></textarea></td>
+                    <td>
+                        <select id="select-status-${item.id}" class="select-status status-pending" onchange="updateStatusStyle(${item.id}, this.value); sendToFirebase(${item.id}, 'status', this.value)">
+                            <option value="pending" class="status-pending">⏳ ยังไม่เริ่ม</option>
+                            <option value="ongoing" class="status-ongoing">🔄 กำลังทำ</option>
+                            <option value="done" class="status-done">✅ สำเร็จแล้ว</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function fillRemoteData() {
+            rawSchedule.forEach(item => {
+                const userState = remoteData[item.id] || { task: '', progress: '', status: 'pending' };
+                
+                const inputTask = document.getElementById(`input-task-${item.id}`);
+                const textProg = document.getElementById(`textarea-progress-${item.id}`);
+                const selectStat = document.getElementById(`select-status-${item.id}`);
+
+                if (inputTask && document.activeElement !== inputTask) inputTask.value = userState.task || '';
+                if (textProg && document.activeElement !== textProg) textProg.value = userState.progress || '';
+                if (selectStat) {
+                    selectStat.value = userState.status || 'pending';
+                    updateStatusStyle(item.id, userState.status || 'pending');
+                }
+            });
+        }
+
+        function updateStatusStyle(id, status) {
+            const selectStat = document.getElementById(`select-status-${id}`);
+            if (!selectStat) return;
+            selectStat.className = 'select-status';
+            if (status === 'ongoing') selectStat.classList.add('status-ongoing');
+            else if (status === 'done') selectStat.classList.add('status-done');
+            else selectStat.classList.add('status-pending');
         }
 
         function updateMetrics() {
@@ -304,55 +365,6 @@
             document.getElementById('stat-progress-bar').style.width = percent + '%';
             document.getElementById('stat-days-count').innerText = completedDays + ' / ' + trainingDays.length + ' วัน';
             document.getElementById('stat-hours-count').innerText = actualHoursEarned.toFixed(1) + ' / 200.5 ชม.';
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('schedule-tbody');
-            if (!tbody) return; 
-            tbody.innerHTML = ''; 
-            
-            rawSchedule.forEach(item => {
-                // ป้องกันกรณีที่ Firebase เป็น null หรือไม่มีข้อมูลไอดีนี้ ให้สร้าง Object เปล่าขึ้นมารองรับทันที ป้องกันตารางพัง
-                const userState = (remoteData && remoteData[item.id]) ? remoteData[item.id] : { task: '', progress: '', status: 'pending' };
-                
-                let tr = document.createElement('tr');
-                tr.id = `row-${item.id}`;
-                
-                if (item.note === 'เรียน') tr.className = 'row-study';
-                else if (item.hours === 0) tr.className = 'row-special';
-                else if (item.day === 'เสาร์' || item.day === 'อาทิตย์') tr.className = 'row-weekend';
-
-                let badgeHTML = '';
-                if (item.note === 'เรียน') badgeHTML = '<span class="badge badge-study">มีเรียนพิเศษ</span>';
-                else if (item.note === 'ซ้อมวันสุดท้าย') badgeHTML = '<span class="badge badge-final">ซ้อมวันสุดท้าย ⭐</span>';
-                else if (item.note === 'เตรียมแข่งขัน') badgeHTML = '<span class="badge badge-travel">วันเดินทาง ✈️</span>';
-                else if (item.note === 'วันแข่งขัน') badgeHTML = '<span class="badge badge-comp">วันแข่งขัน 🏆</span>';
-
-                let statusClass = 'status-pending';
-                if (userState.status === 'ongoing') statusClass = 'status-ongoing';
-                if (userState.status === 'done') statusClass = 'status-done';
-
-                tr.innerHTML = `
-                    <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${item.day}</span></td>
-                    <td><span style="font-weight:500;">${item.time}</span><br>${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted);">(${item.hours} ชม.)</span>`:''}<br>${badgeHTML}</td>
-                    <td><span class="phase-indicator">${item.phase}</span></td>
-                    <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="ระบุเป้าหมาย..." onblur="sendToFirebase(${item.id}, 'task', this.value)"></td>
-                    <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="พิมพ์สรุปผล..." onblur="sendToFirebase(${item.id}, 'progress', this.value)"></textarea></td>
-                    <td>
-                        <select class="select-status ${statusClass}" onchange="sendToFirebase(${item.id}, 'status', this.value)">
-                            <option value="pending" class="status-pending" ${userState.status === 'pending' ? 'selected' : ''}>⏳ ยังไม่เริ่ม</option>
-                            <option value="ongoing" class="status-ongoing" ${userState.status === 'ongoing' ? 'selected' : ''}>🔄 กำลังทำ</option>
-                            <option value="done" class="status-done" ${userState.status === 'done' ? 'selected' : ''}>✅ สำเร็จแล้ว</option>
-                        </select>
-                    </td>
-                `;
-
-                tbody.appendChild(tr);
-
-                // ป้อนข้อมูลกลับเข้าไปในช่อง โดยตรวจสอบให้มั่นใจว่าไม่ติดค่า undefined
-                document.getElementById(`input-task-${item.id}`).value = userState.task || '';
-                document.getElementById(`textarea-progress-${item.id}`).value = userState.progress || '';
-            });
         }
 
         function sendToFirebase(id, field, value) {

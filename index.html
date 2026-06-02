@@ -90,7 +90,7 @@
         .progress-container { background-color: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-top: 10px; overflow: hidden; }
         .progress-bar { background-color: var(--secondary); height: 100%; width: 0%; transition: width 0.4s ease; }
 
-        .table-container { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+        .table-container { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-top: 20px; }
         .responsive-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; }
         .responsive-table th { background-color: #f1f5f9; padding: 14px 16px; border-bottom: 2px solid var(--border); font-family: 'Chakra Petch', sans-serif; }
         .responsive-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
@@ -104,7 +104,7 @@
         .badge-final { background-color: #fef08a; color: #854d0e; }
         .badge-travel { background-color: #dbeafe; color: #1d4ed8; }
         .badge-comp { background-color: #e0f2fe; color: #0369a1; }
-        .phase-indicator { font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+        .phase-indicator { font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; display: inline-block; }
 
         .input-task, .textarea-progress {
             width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: 'Sarabun', sans-serif; font-size: 0.9rem; outline: none; background-color: #f8fafc;
@@ -249,8 +249,8 @@
 
         let remoteData = {};
 
-        // ระบบรอโหลดโครงสร้างหน้าเว็บ (DOM) ให้เสร็จสมบูรณ์ร้อยเปอร์เซ็นต์ก่อนเริ่มรันงาน
         document.addEventListener("DOMContentLoaded", () => {
+            // ดึงข้อมูล Firebase และคอยตรวจจับ Realtime
             dbRef.on('value', (snapshot) => {
                 remoteData = snapshot.val() || {};
                 updateMetrics();
@@ -260,7 +260,6 @@
             initCountdown();
         });
 
-        // 🕐 ฟังก์ชันนับถอยหลังจริงสู่เป้าหมาย (7 ส.ค. 2026 เวลา 08:00 น.)
         function initCountdown() {
             const targetDate = new Date("August 7, 2026 08:00:00").getTime();
 
@@ -313,11 +312,11 @@
             tbody.innerHTML = ''; 
             
             rawSchedule.forEach(item => {
+                // ป้องกันกรณีที่ Firebase เป็น null หรือไม่มีข้อมูลไอดีนี้ ให้สร้าง Object เปล่าขึ้นมารองรับทันที ป้องกันตารางพัง
                 const userState = (remoteData && remoteData[item.id]) ? remoteData[item.id] : { task: '', progress: '', status: 'pending' };
                 
                 let tr = document.createElement('tr');
                 tr.id = `row-${item.id}`;
-                tbody.appendChild(tr);
                 
                 if (item.note === 'เรียน') tr.className = 'row-study';
                 else if (item.hours === 0) tr.className = 'row-special';
@@ -332,9 +331,6 @@
                 let statusClass = 'status-pending';
                 if (userState.status === 'ongoing') statusClass = 'status-ongoing';
                 if (userState.status === 'done') statusClass = 'status-done';
-
-                const currentPlanActive = document.activeElement && document.activeElement.id === `input-task-${item.id}`;
-                const currentReportActive = document.activeElement && document.activeElement.id === `textarea-progress-${item.id}`;
 
                 tr.innerHTML = `
                     <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${item.day}</span></td>
@@ -351,8 +347,11 @@
                     </td>
                 `;
 
-                if (!currentPlanActive) document.getElementById(`input-task-${item.id}`).value = userState.task || '';
-                if (!currentReportActive) document.getElementById(`textarea-progress-${item.id}`).value = userState.progress || '';
+                tbody.appendChild(tr);
+
+                // ป้อนข้อมูลกลับเข้าไปในช่อง โดยตรวจสอบให้มั่นใจว่าไม่ติดค่า undefined
+                document.getElementById(`input-task-${item.id}`).value = userState.task || '';
+                document.getElementById(`textarea-progress-${item.id}`).value = userState.progress || '';
             });
         }
 

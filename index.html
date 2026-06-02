@@ -249,11 +249,16 @@
 
         let remoteData = {};
 
-        // ⚡ ระบบ Realtime ดึงข้อมูล
-        dbRef.on('value', (snapshot) => {
-            remoteData = snapshot.val() || {};
-            updateMetrics();
-            renderTable();
+        // ⚡ เพิ่มคำสั่งดักจับให้ระบบรอโหลดหน้าเว็บ (DOM) เสร็จสมบูรณ์ 100% ก่อนเริ่มรันฟังก์ชันตาราง เพื่อแก้ปัญหาตารางหายบน iPad
+        document.addEventListener("DOMContentLoaded", () => {
+            dbRef.on('value', (snapshot) => {
+                remoteData = snapshot.val() || {};
+                updateMetrics();
+                renderTable();
+            });
+            
+            // รันระบบนับถอยหลัง
+            initCountdown();
         });
 
         // 🕐 ฟังก์ชันนับถอยหลังจริงสู่เป้าหมาย (7 ส.ค. 2026 เวลา 08:00 น.)
@@ -282,9 +287,6 @@
                 `;
             }, 1000);
         }
-        
-        // รันฟังก์ชันนับถอยหลังตั้งแต่เปิดเว็บ
-        initCountdown();
 
         function updateMetrics() {
             const trainingDays = rawSchedule.filter(item => item.hours > 0);
@@ -308,11 +310,11 @@
 
         function renderTable() {
             const tbody = document.getElementById('schedule-tbody');
-            if (!tbody) return; // ป้องกันข้อผิดพลาดหากหาตัวตารางไม่เจอ
-            tbody.innerHTML = ''; // เคลียร์ตารางเก่าก่อนวาดใหม่ป้องกันข้อมูลซ้อน
+            if (!tbody) return; // ป้องกันข้อผิดพลาดหากตัวแปรตารางในหน้าเว็บยังโหลดไม่ขึ้น
+            tbody.innerHTML = ''; // เคลียร์ตารางเก่าก่อนวาดใหม่ ป้องกันข้อมูลซ้ำซ้อน
             
             rawSchedule.forEach(item => {
-                // แก้ไขบั๊กจุดสำคัญ: ตรวจสอบความปลอดภัยก่อนดึงข้อมูลจากคลาวด์ ป้องกันตารางหายเมื่อฐานข้อมูลว่าง
+                // ระบบป้องกัน: ถึงแม้ฐานข้อมูลคลาวด์จะว่างเปล่า ก็จะบังคับให้สร้างแถวข้อมูลเปล่าๆ ขึ้นมาแสดงโชว์เสมอ
                 const userState = (remoteData && remoteData[item.id]) ? remoteData[item.id] : { task: '', progress: '', status: 'pending' };
                 
                 let tr = document.createElement('tr');

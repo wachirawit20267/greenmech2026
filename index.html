@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏆 GreenMech 2026 - Official Training Dashboard</title>
+    <title>🏆 GreenMech 2026 - Official Real-time Training Dashboard</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap');
 
@@ -103,8 +103,6 @@
         }
         .btn-export { background-color: #2563eb; color: white; }
         .btn-export:hover { background-color: #1d4ed8; }
-        .btn-sync { background-color: #4b5563; color: white; }
-        .btn-sync:hover { background-color: #374151; }
 
         /* Table Design */
         .table-container { 
@@ -161,13 +159,16 @@
         }
         @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
     <header>
         <div class="container">
             <h1>🏆 World GreenMech Contest 2026</h1>
-            <p><span class="live-indicator"></span> แดชบอร์ดบันทึกและติดตามความก้าวหน้าการฝึกซ้อมของทีม PT Avatar GreenTech</p>
+            <p><span class="live-indicator"></span> แดชบอร์ดระบบ Cloud Real-time ซิงค์ข้อมูลอัตโนมัติของทีม PT Avatar GreenTech</p>
             <div id="user-mode-tag" class="mode-badge mode-viewer-style">👁️ โหมดผู้เข้าชม (อ่านอย่างเดียว)</div>
         </div>
     </header>
@@ -194,8 +195,6 @@
         </div>
 
         <div class="toolbar" id="toolbar-area" style="display: none;">
-            <button class="btn btn-sync" onclick="exportBackupCode()">📥 สำรองข้อมูล (Backup)</button>
-            <button class="btn btn-sync" onclick="importBackupCode()">📤 นำเข้าข้อมูล (Restore)</button>
             <button class="btn btn-export" onclick="exportToCSV()">📊 ส่งออกไฟล์ Excel (CSV)</button>
         </div>
 
@@ -216,9 +215,26 @@
         </div>
     </main>
 
-    <div class="toast-notify" id="toast-msg">✓ บันทึกการเปลี่ยนแปลงเรียบร้อย!</div>
+    <div class="toast-notify" id="toast-msg">⚡ อัปเดต Cloud เรียบร้อย!</div>
 
     <script>
+        // 🔒 เชื่อมต่อพิกัดระบบฐานข้อมูล Firebase ของคุณวชิรวิชญ์
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-3PQhZ4B8iSQm-C4gDR3uo-BE5JrbFlc",
+            authDomain: "greenmech2026.firebaseapp.com",
+            databaseURL: "https://greenmech2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "greenmech2026",
+            storageBucket: "greenmech2026.firebasestorage.app",
+            messagingSenderId: "326665910575",
+            appId: "1:326665910575:web:b2632d944d0b295f1509da",
+            measurementId: "G-5Z7KTLR57W"
+        };
+
+        // เริ่มต้นใช้งานคลาวด์ฐานข้อมูล
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const dbRef = database.ref('greenmech_training_data');
+
         const rawSchedule = [
             { id: 1, date: "11 มิ.ย.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
             { id: 2, date: "12 มิ.ย.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
@@ -256,9 +272,9 @@
             { id: 34, date: "14 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
             { id: 35, date: "15 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "3. ทดสอบและปรับปรุง" },
             { id: 36, date: "16 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 37, date: "17 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 38, date: "18 ก.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 39, date: "19 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 37, date: "17 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "3. ทดสอบและปรับปรุง" },
+            { id: 38, date: "18 ก.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "3. ทดสอบและปรับปรุง" },
+            { id: 39, date: "19 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "3. ทดสอบและปรับปรุง" },
             { id: 40, date: "20 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 41, date: "21 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 42, date: "22 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
@@ -282,30 +298,32 @@
             { id: 60, date: "9 ส.ค.", day: "อาทิตย์", time: "แข่งขัน", hours: 0, note: "วันแข่งขัน", phase: "🔥 แข่งขัน" }
         ];
 
-        // ตรวจสอบพารามิเตอร์ URL ว่าใช่โหมดแก้ไขหรือไม่ 
         const urlParams = new URLSearchParams(window.location.search);
         const isEditMode = urlParams.get('mode') === 'edit';
-
-        let localData = JSON.parse(localStorage.getItem('greenmech_local_data')) || {};
+        let cloudData = {};
 
         document.addEventListener("DOMContentLoaded", () => {
             const modeTag = document.getElementById('user-mode-tag');
             const toolbar = document.getElementById('toolbar-area');
             
-            // ตั้งค่าหน้าตาเว็บตามสิทธิ์การเข้าใช้งาน
             if (isEditMode) {
                 modeTag.innerText = "✏️ โหมดแก้ไขข้อมูล (ทีมงาน PT Avatar)";
                 modeTag.className = "mode-badge mode-editor-style";
-                toolbar.style.display = "flex"; // แสดงปุ่มทูลบาร์สำหรับทีมงาน
+                toolbar.style.display = "flex";
             } else {
-                modeTag.innerText = "👁️ โหมดผู้เข้าชม (อ่านอย่างเดียว)";
+                modeTag.innerText = "👁️ โหมดผู้เข้าชม (Real-time)";
                 modeTag.className = "mode-badge mode-viewer-style";
-                toolbar.style.display = "none";  // ซ่อนปุ่มทูลบาร์จากผู้ชมภายนอก
+                toolbar.style.display = "none";
             }
 
-            renderTable();
             initCountdown();
-            updateMetrics();
+
+            // ⚡ ฟังก์ชันซิงค์ Real-time ดึงข้อมูลตรงจากคลาวด์มาอัปเดตหน้าจอทันทีเมื่อมีการเปลี่ยนแปลง
+            dbRef.on('value', (snapshot) => {
+                cloudData = snapshot.val() || {};
+                renderTable();
+                updateMetrics();
+            });
         });
 
         function initCountdown() {
@@ -337,7 +355,7 @@
             tbody.innerHTML = '';
 
             rawSchedule.forEach(item => {
-                const userState = localData[item.id] || { task: '', progress: '', status: 'pending' };
+                const userState = cloudData[item.id] || { task: '', progress: '', status: 'pending' };
                 
                 let tr = document.createElement('tr');
                 tr.id = `row-${item.id}`;
@@ -356,17 +374,16 @@
                 if (userState.status === 'ongoing') statusClass = 'status-ongoing';
                 if (userState.status === 'done') statusClass = 'status-done';
 
-                // กำหนดตัวแปร ล็อก/ปลดล็อก ช่องกรอกข้อมูลตามสิทธิ์
                 const disabledAttr = isEditMode ? '' : 'disabled';
 
                 tr.innerHTML = `
                     <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${item.day}</span></td>
                     <td><span style="font-weight:500;">${item.time}</span><br>${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted);">(${item.hours} ชม.)</span>`:''}<br>${badgeHTML}</td>
                     <td><span class="phase-indicator">${item.phase}</span></td>
-                    <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="${isEditMode ? 'ระบุเป้าหมาย...' : '-'}" value="${userState.task || ''}" ${disabledAttr} onchange="saveData(${item.id}, 'task', this.value)"></td>
-                    <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="${isEditMode ? 'พิมพ์สรุปผล...' : '-'}" ${disabledAttr} onchange="saveData(${item.id}, 'progress', this.value)">${userState.progress || ''}</textarea></td>
+                    <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="${isEditMode ? 'ระบุเป้าหมาย...' : '-'}" value="${userState.task || ''}" ${disabledAttr} onchange="saveRealtime(${item.id}, 'task', this.value)"></td>
+                    <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="${isEditMode ? 'พิมพ์สรุปผล...' : '-'}" ${disabledAttr} onchange="saveRealtime(${item.id}, 'progress', this.value)">${userState.progress || ''}</textarea></td>
                     <td>
-                        <select id="select-status-${item.id}" class="select-status ${statusClass}" ${disabledAttr} onchange="saveData(${item.id}, 'status', this.value)">
+                        <select id="select-status-${item.id}" class="select-status ${statusClass}" ${disabledAttr} onchange="saveRealtime(${item.id}, 'status', this.value)">
                             <option value="pending" class="status-pending" ${userState.status === 'pending' ? 'selected' : ''}>⏳ ยังไม่เริ่ม</option>
                             <option value="ongoing" class="status-ongoing" ${userState.status === 'ongoing' ? 'selected' : ''}>🔄 กำลังทำ</option>
                             <option value="done" class="status-done" ${userState.status === 'done' ? 'selected' : ''}>✅ สำเร็จแล้ว</option>
@@ -377,25 +394,14 @@
             });
         }
 
-        function saveData(id, field, value) {
-            if (!isEditMode) return; // ป้องกันการเซฟหากไม่ใช่โหมดแก้ไข
-            if (!localData[id]) localData[id] = { task: '', progress: '', status: 'pending' };
-            localData[id][field] = value;
-            
-            localStorage.setItem('greenmech_local_data', JSON.stringify(localData));
-            
-            if (field === 'status') {
-                const selectStat = document.getElementById(`select-status-${id}`);
-                if (selectStat) {
-                    selectStat.className = 'select-status';
-                    if (value === 'ongoing') selectStat.classList.add('status-ongoing');
-                    else if (value === 'done') selectStat.classList.add('status-done');
-                    else selectStat.classList.add('status-pending');
-                }
-            }
-
-            updateMetrics();
-            showToast("✓ บันทึกการเปลี่ยนแปลงเรียบร้อย!");
+        // ⚡ ยิงข้อมูลขึ้นคลาวด์ Firebase ทันทีเมื่อมีการแก้ไข
+        function saveRealtime(id, field, value) {
+            if (!isEditMode) return;
+            database.ref('greenmech_training_data/' + id).update({
+                [field]: value
+            }).then(() => {
+                showToast("⚡ บันทึกขึ้น Cloud สำเร็จ!");
+            });
         }
 
         function updateMetrics() {
@@ -404,7 +410,7 @@
             let actualHoursEarned = 0;
 
             trainingDays.forEach(day => {
-                const dayState = localData[day.id] || { status: 'pending' };
+                const dayState = cloudData[day.id] || { status: 'pending' };
                 if (dayState.status === 'done') {
                     completedDays++;
                     actualHoursEarned += day.hours;
@@ -422,7 +428,7 @@
             const toast = document.getElementById('toast-msg');
             toast.innerText = msg;
             toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 2000);
+            setTimeout(() => { toast.style.display = 'none'; }, 1500);
         }
 
         function exportToCSV() {
@@ -430,7 +436,7 @@
             csvContent += "วันที่,วัน,เวลาซ้อม,ชั่วโมง,ระยะเป้าหมาย,งานที่วางแผน,รายงานผลการซ้อม,สถานะ\n";
 
             rawSchedule.forEach(item => {
-                const userState = localData[item.id] || { task: '', progress: '', status: 'pending' };
+                const userState = cloudData[item.id] || { task: '', progress: '', status: 'pending' };
                 let statusText = "ยังไม่เริ่ม";
                 if(userState.status === 'ongoing') statusText = "กำลังทำ";
                 if(userState.status === 'done') statusText = "สำเร็จแล้ว";
@@ -445,38 +451,11 @@
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", `GreenMech_2026_Training_Report.csv`);
+            link.setAttribute("download", `GreenMech_2026_Realtime_Report.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast("📊 ดาวน์โหลดรายงาน Excel เรียบร้อย!");
-        }
-
-        function exportBackupCode() {
-            const dataString = btoa(unescape(encodeURIComponent(JSON.stringify(localData))));
-            navigator.clipboard.writeText(dataString).then(() => {
-                alert("📥 คัดลอกรหัสอัปเดตข้อมูลของทีมเรียบร้อยแล้ว! นำรหัสนี้ไปส่งต่อให้คุณครูหรือคนนอกทีมเพื่ออัปเดตหน้าจอโหมดผู้ชมได้เลยครับ");
-            }).catch(() => {
-                prompt("คัดลอกรหัสสำรองข้อมูลด้านล่างนี้:", dataString);
-            });
-        }
-
-        function importBackupCode() {
-            const code = prompt("📤 วางรหัสข้อมูล (Data Code) ล่าสุดจากทีมงานเพื่ออัปเดตตารางหน้าจอเครื่องนี้:");
-            if (!code) return;
-            try {
-                const decodedData = JSON.parse(decodeURIComponent(escape(atob(code))));
-                if (typeof decodedData === 'object') {
-                    localData = decodedData;
-                    localStorage.setItem('greenmech_local_data', JSON.stringify(localData));
-                    renderTable();
-                    updateMetrics();
-                    showToast("✅ ดึงข้อมูลกลับมาเรียบร้อยแล้ว!");
-                }
-            } catch (e) {
-                alert("❌ รหัสไม่ถูกต้อง กรุณาตรวจสอบรหัสสำรองข้อมูลอีกครั้ง");
-            }
         }
     </script>
 </body>

@@ -41,7 +41,7 @@
         }
         header h1 { font-size: 2.2rem; margin-bottom: 6px; letter-spacing: 0.5px; }
         
-        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+        .container { max-width: 1500px; margin: 0 auto; padding: 0 20px; }
 
         /* Dashboard Section */
         .dashboard-summary {
@@ -112,7 +112,7 @@
             overflow-x: auto; 
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
         }
-        .responsive-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; min-width: 900px; }
+        .responsive-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; min-width: 1050px; }
         .responsive-table th { background-color: #f8fafc; padding: 16px; border-bottom: 2px solid var(--border); color: #475569; font-family: 'Chakra Petch', sans-serif; font-weight: 600; }
         .responsive-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
 
@@ -135,9 +135,23 @@
         }
         .input-task:focus, .textarea-progress:focus { border-color: var(--secondary); background-color: #fff; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
         
-        /* สไตล์พิเศษสำหรับ Viewer Mode (ล็อกให้อ่านได้อย่างเดียวแบบเนียนตา) */
+        /* Time Input Design */
+        .time-picker-box { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+        .input-time-real { padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; font-family: 'Chakra Petch', sans-serif; width: 75px; background-color: #f8fafc; }
+        .input-time-real:focus { border-color: var(--secondary); background-color: #fff; outline: none; }
+
+        /* Time Compare Badges */
+        .diff-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; font-family: 'Chakra Petch', sans-serif; margin-top: 4px; }
+        .diff-plus { background-color: #d1fae5; color: #065f46; }
+        .diff-minus { background-color: #fee2e2; color: #991b1b; }
+        .diff-equal { background-color: #f1f5f9; color: #475569; }
+
+        /* Disabled elements on Viewer Mode */
         .input-task:disabled, .textarea-progress:disabled {
             background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; cursor: default; padding: 0; box-shadow: none !important; resize: none;
+        }
+        .input-time-real:disabled {
+            background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; font-weight: 600; padding: 0; width: auto;
         }
         .select-status:disabled {
             border-color: transparent !important; cursor: default; -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-left: 4px;
@@ -151,7 +165,6 @@
         .live-indicator { display: inline-block; width: 9px; height: 9px; background-color: #22c55e; border-radius: 50%; animation: pulse 1.6s infinite; margin-right: 6px; vertical-align: middle; }
         @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
 
-        /* Notification Toast */
         .toast-notify {
             position: fixed; bottom: 24px; right: 24px; background-color: #1e293b; color: white;
             padding: 14px 24px; border-radius: 10px; font-weight: 500; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
@@ -168,7 +181,7 @@
     <header>
         <div class="container">
             <h1>🏆 World GreenMech Contest 2026</h1>
-            <p><span class="live-indicator"></span> แดชบอร์ดระบบ Cloud Real-time ซิงค์ข้อมูลอัตโนมัติของทีม PT Avatar GreenTech</p>
+            <p><span class="live-indicator"></span> แดชบอร์ดเปรียบเทียบเวลาซ้อมเป้าหมายและเวลาซ้อมจริง ทีม PT Avatar GreenTech</p>
             <div id="user-mode-tag" class="mode-badge mode-viewer-style">👁️ โหมดผู้เข้าชม (อ่านอย่างเดียว)</div>
         </div>
     </header>
@@ -202,9 +215,10 @@
             <table class="responsive-table">
                 <thead>
                     <tr>
-                        <th style="width: 120px;">วันที่</th>
-                        <th style="width: 170px;">เวลาซ้อม</th>
-                        <th style="width: 160px;">ระยะเป้าหมาย</th>
+                        <th style="width: 110px;">วันที่</th>
+                        <th style="width: 160px;">🎯 เป้าหมายระบบ</th>
+                        <th style="width: 210px;">⏱️ เวลาที่ซ้อมจริง</th>
+                        <th style="width: 150px;">ระยะเป้าหมาย</th>
                         <th>🎯 งานที่วางแผน / สิ่งที่จะทำวันนี้</th>
                         <th>📝 รายงานความคืบหน้า / ผลการซ้อม</th>
                         <th style="width: 140px;">สถานะ</th>
@@ -218,7 +232,6 @@
     <div class="toast-notify" id="toast-msg">⚡ อัปเดต Cloud เรียบร้อย!</div>
 
     <script>
-        // 🔒 เชื่อมต่อพิกัดระบบฐานข้อมูล Firebase ของคุณวชิรวิชญ์
         const firebaseConfig = {
             apiKey: "AIzaSyB-3PQhZ4B8iSQm-C4gDR3uo-BE5JrbFlc",
             authDomain: "greenmech2026.firebaseapp.com",
@@ -230,7 +243,6 @@
             measurementId: "G-5Z7KTLR57W"
         };
 
-        // เริ่มต้นใช้งานคลาวด์ฐานข้อมูล
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const dbRef = database.ref('greenmech_training_data');
@@ -318,7 +330,6 @@
 
             initCountdown();
 
-            // ⚡ ฟังก์ชันซิงค์ Real-time ดึงข้อมูลตรงจากคลาวด์มาอัปเดตหน้าจอทันทีเมื่อมีการเปลี่ยนแปลง
             dbRef.on('value', (snapshot) => {
                 cloudData = snapshot.val() || {};
                 renderTable();
@@ -349,13 +360,27 @@
             }, 1000);
         }
 
+        // ฟังก์ชันช่วยคำนวณความต่างของเวลาจากรูปแบบสตริง HH:MM
+        function calculateRealHours(start, end) {
+            if (!start || !end) return 0;
+            const [startH, startM] = start.split(':').map(Number);
+            const [endH, endM] = end.split(':').map(Number);
+            
+            if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return 0;
+            
+            let diffMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+            if (diffMinutes <= 0) return 0; 
+            
+            return diffMinutes / 60; // แปลงเป็นชั่วโมงแบบทศนิยม
+        }
+
         function renderTable() {
             const tbody = document.getElementById('schedule-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
 
             rawSchedule.forEach(item => {
-                const userState = cloudData[item.id] || { task: '', progress: '', status: 'pending' };
+                const userState = cloudData[item.id] || { task: '', progress: '', status: 'pending', startTime: '', endTime: '' };
                 
                 let tr = document.createElement('tr');
                 tr.id = `row-${item.id}`;
@@ -376,9 +401,56 @@
 
                 const disabledAttr = isEditMode ? '' : 'disabled';
 
+                // คำนวณชั่วโมงซ้อมจริงและเปรียบเทียบผลต่าง
+                const realHours = calculateRealHours(userState.startTime, userState.endTime);
+                let diffHTML = '';
+                if (item.hours > 0 && (userState.startTime || userState.endTime)) {
+                    let diff = realHours - item.hours;
+                    if (diff > 0) {
+                        diffHTML = `<span class="diff-tag diff-plus">เกินเป้า +${diff.toFixed(1)} ชม.</span>`;
+                    } else if (diff < 0) {
+                        diffHTML = `<span class="diff-tag diff-minus">ขาดไป ${Math.abs(diff).toFixed(1)} ชม.</span>`;
+                    } else {
+                        diffHTML = `<span class="diff-tag diff-equal">ตรงเป้า เป๊ะ!</span>`;
+                    }
+                }
+
+                // การแสดงผลคอลัมน์ "เวลาที่ซ้อมจริง" ตามสิทธิ์โหมดแก้ไข/ผู้ชม
+                let realTimeColHTML = '';
+                if (isEditMode) {
+                    realTimeColHTML = `
+                        <div class="time-picker-box">
+                            <span style="font-size:0.8rem; width:30px;">เริ่ม:</span>
+                            <input type="time" class="input-time-real" value="${userState.startTime || ''}" onchange="saveRealtime(${item.id}, 'startTime', this.value)">
+                        </div>
+                        <div class="time-picker-box">
+                            <span style="font-size:0.8rem; width:30px;">เลิก:</span>
+                            <input type="time" class="input-time-real" value="${userState.endTime || ''}" onchange="saveRealtime(${item.id}, 'endTime', this.value)">
+                        </div>
+                        ${realHours > 0 ? `<div style="font-size:0.85rem; font-weight:600; color:var(--primary-dark)">รวม: ${realHours.toFixed(1)} ชม.</div>` : ''}
+                        ${diffHTML}
+                    `;
+                } else {
+                    // โหมดคนดูทั่วไป
+                    if (userState.startTime && userState.endTime) {
+                        realTimeColHTML = `
+                            <span style="font-weight:600; color:var(--primary-dark); font-family:'Chakra Petch'">${userState.startTime} - ${userState.endTime}</span><br>
+                            <span style="font-size:0.85rem; color:var(--text-muted);">(รวมซ้อมจริง ${realHours.toFixed(1)} ชม.)</span><br>
+                            ${diffHTML}
+                        `;
+                    } else {
+                        realTimeColHTML = `<span style="color:var(--text-muted); font-size:0.9rem;">- ยังไม่ลงเวลาซ้อม -</span>`;
+                    }
+                }
+
                 tr.innerHTML = `
                     <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${item.day}</span></td>
-                    <td><span style="font-weight:500;">${item.time}</span><br>${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted);">(${item.hours} ชม.)</span>`:''}<br>${badgeHTML}</td>
+                    <td>
+                        <span style="font-weight:500; color:var(--text-muted);">${item.time}</span><br>
+                        ${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">(เป้าหมาย: ${item.hours} ชม.)</span>`:''}
+                        <br>${badgeHTML}
+                    </td>
+                    <td>${realTimeColHTML}</td>
                     <td><span class="phase-indicator">${item.phase}</span></td>
                     <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="${isEditMode ? 'ระบุเป้าหมาย...' : '-'}" value="${userState.task || ''}" ${disabledAttr} onchange="saveRealtime(${item.id}, 'task', this.value)"></td>
                     <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="${isEditMode ? 'พิมพ์สรุปผล...' : '-'}" ${disabledAttr} onchange="saveRealtime(${item.id}, 'progress', this.value)">${userState.progress || ''}</textarea></td>
@@ -394,34 +466,38 @@
             });
         }
 
-        // ⚡ ยิงข้อมูลขึ้นคลาวด์ Firebase ทันทีเมื่อมีการแก้ไข
         function saveRealtime(id, field, value) {
             if (!isEditMode) return;
             database.ref('greenmech_training_data/' + id).update({
                 [field]: value
             }).then(() => {
-                showToast("⚡ บันทึกขึ้น Cloud สำเร็จ!");
+                showToast("⚡ บันทึกและคำนวณเวลาเรียบร้อย!");
             });
         }
 
         function updateMetrics() {
             const trainingDays = rawSchedule.filter(item => item.hours > 0);
             let completedDays = 0;
-            let actualHoursEarned = 0;
+            let totalActualHours = 0;
 
             trainingDays.forEach(day => {
-                const dayState = cloudData[day.id] || { status: 'pending' };
+                const dayState = cloudData[day.id] || { status: 'pending', startTime: '', endTime: '' };
+                
+                // ถ้ายืนยันว่าสำเร็จแล้ว จะนับวันซ้อมเพิ่ม
                 if (dayState.status === 'done') {
                     completedDays++;
-                    actualHoursEarned += day.hours;
                 }
+                
+                // คำนวณสะสมชั่วโมงซ้อมจริง (คำนวณตลอดถ้าระบุเวลาเข้า-ออก)
+                const realHours = calculateRealHours(dayState.startTime, dayState.endTime);
+                totalActualHours += realHours;
             });
 
             const percent = Math.round((completedDays / trainingDays.length) * 100) || 0;
             document.getElementById('stat-progress-percent').innerText = percent + '%';
             document.getElementById('stat-progress-bar').style.width = percent + '%';
             document.getElementById('stat-days-count').innerText = completedDays + ' / ' + trainingDays.length + ' วัน';
-            document.getElementById('stat-hours-count').innerText = actualHoursEarned.toFixed(1) + ' / 200.5 ชม.';
+            document.getElementById('stat-hours-count').innerText = totalActualHours.toFixed(1) + ' / 200.5 ชม.';
         }
 
         function showToast(msg) {
@@ -433,25 +509,26 @@
 
         function exportToCSV() {
             let csvContent = "\uFEFF"; 
-            csvContent += "วันที่,วัน,เวลาซ้อม,ชั่วโมง,ระยะเป้าหมาย,งานที่วางแผน,รายงานผลการซ้อม,สถานะ\n";
+            csvContent += "วันที่,วัน,เวลาเป้าหมาย,ชั่วโมงเป้าหมาย,เวลาเข้าจริง,เวลาออกจริง,ชั่วโมงซ้อมจริง,ระยะเป้าหมาย,งานที่วางแผน,รายงานผลการซ้อม,สถานะ\n";
 
             rawSchedule.forEach(item => {
-                const userState = cloudData[item.id] || { task: '', progress: '', status: 'pending' };
+                const userState = cloudData[item.id] || { task: '', progress: '', status: 'pending', startTime:'', endTime:'' };
                 let statusText = "ยังไม่เริ่ม";
                 if(userState.status === 'ongoing') statusText = "กำลังทำ";
                 if(userState.status === 'done') statusText = "สำเร็จแล้ว";
 
+                const realHours = calculateRealHours(userState.startTime, userState.endTime);
                 let task = (userState.task || '').replace(/"/g, '""');
                 let progress = (userState.progress || '').replace(/"/g, '""');
 
-                csvContent += `"${item.date}","${item.day}","${item.time}",${item.hours},"${item.phase}","${task}","${progress}","${statusText}"\n`;
+                csvContent += `"${item.date}","${item.day}","${item.time}",${item.hours},"${userState.startTime || ''}","${userState.endTime || ''}",${realHours.toFixed(1)},"${item.phase}","${task}","${progress}","${statusText}"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", `GreenMech_2026_Realtime_Report.csv`);
+            link.setAttribute("download", `GreenMech_2026_Training_TimeReport.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();

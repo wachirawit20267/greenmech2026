@@ -135,9 +135,9 @@
         }
         .input-task:focus, .textarea-progress:focus { border-color: var(--secondary); background-color: #fff; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
         
-        /* Time Input Design */
+        /* Time Input Design (บังคับแสดงผลแบบ 24 ชั่วโมง) */
         .time-picker-box { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
-        .input-time-real { padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; font-family: 'Chakra Petch', sans-serif; width: 75px; background-color: #f8fafc; }
+        .input-time-real { padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; font-family: 'Chakra Petch', sans-serif; width: 95px; background-color: #f8fafc; }
         .input-time-real:focus { border-color: var(--secondary); background-color: #fff; outline: none; }
 
         /* Time Compare Badges */
@@ -181,7 +181,7 @@
     <header>
         <div class="container">
             <h1>🏆 World GreenMech Contest 2026</h1>
-            <p><span class="live-indicator"></span> แดชบอร์ดเปรียบเทียบเวลาซ้อมเป้าหมายและเวลาซ้อมจริง ทีม PT Avatar GreenTech</p>
+            <p><span class="live-indicator"></span> แดชบอร์ดเปรียบเทียบเวลาซ้อมระบบเรียลไทม์ (24-Hour Format) ทีม PT Avatar GreenTech</p>
             <div id="user-mode-tag" class="mode-badge mode-viewer-style">👁️ โหมดผู้เข้าชม (อ่านอย่างเดียว)</div>
         </div>
     </header>
@@ -217,7 +217,7 @@
                     <tr>
                         <th style="width: 110px;">วันที่</th>
                         <th style="width: 160px;">🎯 เป้าหมายระบบ</th>
-                        <th style="width: 210px;">⏱️ เวลาที่ซ้อมจริง</th>
+                        <th style="width: 210px;">⏱️ เวลาที่ซ้อมจริง (24h)</th>
                         <th style="width: 150px;">ระยะเป้าหมาย</th>
                         <th>🎯 งานที่วางแผน / สิ่งที่จะทำวันนี้</th>
                         <th>📝 รายงานความคืบหน้า / ผลการซ้อม</th>
@@ -360,7 +360,7 @@
             }, 1000);
         }
 
-        // ฟังก์ชันช่วยคำนวณความต่างของเวลาจากรูปแบบสตริง HH:MM
+        // ฟังก์ชันคำนวณชั่วโมงจากรูปแบบระบบ 24 ชั่วโมง (HH:MM)
         function calculateRealHours(start, end) {
             if (!start || !end) return 0;
             const [startH, startM] = start.split(':').map(Number);
@@ -371,7 +371,7 @@
             let diffMinutes = (endH * 60 + endM) - (startH * 60 + startM);
             if (diffMinutes <= 0) return 0; 
             
-            return diffMinutes / 60; // แปลงเป็นชั่วโมงแบบทศนิยม
+            return diffMinutes / 60;
         }
 
         function renderTable() {
@@ -401,23 +401,22 @@
 
                 const disabledAttr = isEditMode ? '' : 'disabled';
 
-                // คำนวณชั่วโมงซ้อมจริงและเปรียบเทียบผลต่าง
                 const realHours = calculateRealHours(userState.startTime, userState.endTime);
                 let diffHTML = '';
                 if (item.hours > 0 && (userState.startTime || userState.endTime)) {
                     let diff = realHours - item.hours;
                     if (diff > 0) {
-                        diffHTML = `<span class="diff-tag diff-plus">เกินเป้า +${diff.toFixed(1)} ชม.</span>`;
+                        diffHTML = `<span class="diff-tag diff-plus">+${diff.toFixed(1)} ชม.</span>`;
                     } else if (diff < 0) {
-                        diffHTML = `<span class="diff-tag diff-minus">ขาดไป ${Math.abs(diff).toFixed(1)} ชม.</span>`;
+                        diffHTML = `<span class="diff-tag diff-minus">-${Math.abs(diff).toFixed(1)} ชม.</span>`;
                     } else {
-                        diffHTML = `<span class="diff-tag diff-equal">ตรงเป้า เป๊ะ!</span>`;
+                        diffHTML = `<span class="diff-tag diff-equal">ตามเป้า</span>`;
                     }
                 }
 
-                // การแสดงผลคอลัมน์ "เวลาที่ซ้อมจริง" ตามสิทธิ์โหมดแก้ไข/ผู้ชม
                 let realTimeColHTML = '';
                 if (isEditMode) {
+                    // ช่องกรอกแบบสากล 24 ชม.
                     realTimeColHTML = `
                         <div class="time-picker-box">
                             <span style="font-size:0.8rem; width:30px;">เริ่ม:</span>
@@ -427,27 +426,26 @@
                             <span style="font-size:0.8rem; width:30px;">เลิก:</span>
                             <input type="time" class="input-time-real" value="${userState.endTime || ''}" onchange="saveRealtime(${item.id}, 'endTime', this.value)">
                         </div>
-                        ${realHours > 0 ? `<div style="font-size:0.85rem; font-weight:600; color:var(--primary-dark)">รวม: ${realHours.toFixed(1)} ชม.</div>` : ''}
+                        ${realHours > 0 ? `<div style="font-size:0.85rem; font-weight:600; color:var(--primary-dark)">จริง: ${realHours.toFixed(1)} ชม.</div>` : ''}
                         ${diffHTML}
                     `;
                 } else {
-                    // โหมดคนดูทั่วไป
                     if (userState.startTime && userState.endTime) {
                         realTimeColHTML = `
-                            <span style="font-weight:600; color:var(--primary-dark); font-family:'Chakra Petch'">${userState.startTime} - ${userState.endTime}</span><br>
-                            <span style="font-size:0.85rem; color:var(--text-muted);">(รวมซ้อมจริง ${realHours.toFixed(1)} ชม.)</span><br>
+                            <span style="font-weight:600; color:var(--primary-dark); font-family:'Chakra Petch'">${userState.startTime} - ${userState.endTime} น.</span><br>
+                            <span style="font-size:0.85rem; color:var(--text-muted);">(ซ้อมจริง ${realHours.toFixed(1)} ชม.)</span><br>
                             ${diffHTML}
                         `;
                     } else {
-                        realTimeColHTML = `<span style="color:var(--text-muted); font-size:0.9rem;">- ยังไม่ลงเวลาซ้อม -</span>`;
+                        realTimeColHTML = `<span style="color:var(--text-muted); font-size:0.9rem;">- ยังไม่ลงเวลา -</span>`;
                     }
                 }
 
                 tr.innerHTML = `
                     <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${item.day}</span></td>
                     <td>
-                        <span style="font-weight:500; color:var(--text-muted);">${item.time}</span><br>
-                        ${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">(เป้าหมาย: ${item.hours} ชม.)</span>`:''}
+                        <span style="font-weight:500; color:var(--text-muted);">${item.time} น.</span><br>
+                        ${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">(เป้า: ${item.hours} ชม.)</span>`:''}
                         <br>${badgeHTML}
                     </td>
                     <td>${realTimeColHTML}</td>
@@ -471,7 +469,7 @@
             database.ref('greenmech_training_data/' + id).update({
                 [field]: value
             }).then(() => {
-                showToast("⚡ บันทึกและคำนวณเวลาเรียบร้อย!");
+                showToast("⚡ บันทึกเวลาแบบ 24 ชม. สำเร็จ!");
             });
         }
 
@@ -482,13 +480,9 @@
 
             trainingDays.forEach(day => {
                 const dayState = cloudData[day.id] || { status: 'pending', startTime: '', endTime: '' };
-                
-                // ถ้ายืนยันว่าสำเร็จแล้ว จะนับวันซ้อมเพิ่ม
                 if (dayState.status === 'done') {
                     completedDays++;
                 }
-                
-                // คำนวณสะสมชั่วโมงซ้อมจริง (คำนวณตลอดถ้าระบุเวลาเข้า-ออก)
                 const realHours = calculateRealHours(dayState.startTime, dayState.endTime);
                 totalActualHours += realHours;
             });

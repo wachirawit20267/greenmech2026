@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏆 GreenMech 2026 - Official Real-time Training Dashboard</title>
+    <title>🏆 PT AVATAR GREENTECH - World GreenMech 2026 Central HQ</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap');
 
         :root {
+            --bg-dark: #0f172a;
+            --bg-sidebar: #1e293b;
+            --bg-card: #ffffff;
+            --bg-main: #f8fafc;
             --primary: #059669;
             --primary-dark: #065f46;
-            --primary-light: #d1fae5;
-            --secondary: #10b981;
-            --bg-main: #f8fafc;
-            --bg-card: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border: #e2e8f0;
-            --accent-study-light: #fff7ed;
-            --accent-comp-light: #eff6ff;
+            --income: #10b981;
+            --expense: #ef4444;
+            --balance: #3b82f6;
+            --countdown-bg: #fff1f2;
             --countdown-text: #e11d48;
         }
 
@@ -27,211 +29,368 @@
             font-family: 'Sarabun', sans-serif;
             background-color: var(--bg-main);
             color: var(--text-main);
-            line-height: 1.6;
-            padding-bottom: 80px;
+            display: flex;
+            min-height: 100vh;
         }
-        h1, h2, h3, .heading-font { font-family: 'Chakra Petch', sans-serif; font-weight: 600; }
+        h1, h2, h3, th, .heading-font { font-family: 'Chakra Petch', sans-serif; font-weight: 600; }
 
-        header {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+        /* ==========================================
+           SIDEBAR SYSTEM (แถบเลือกหัวข้อซ้ายมือ)
+        ========================================== */
+        aside {
+            width: 280px;
+            background-color: var(--bg-sidebar);
             color: white;
-            padding: 35px 20px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
         }
-        header h1 { font-size: 2.2rem; margin-bottom: 6px; letter-spacing: 0.5px; }
-        
-        .container { max-width: 1500px; margin: 0 auto; padding: 0 20px; }
+        .sidebar-brand {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            text-align: center;
+        }
+        .sidebar-brand h2 { font-size: 1.4rem; letter-spacing: 0.5px; }
+        .sidebar-brand p { font-size: 0.8rem; opacity: 0.8; margin-top: 4px; }
 
-        /* Dashboard Section */
-        .dashboard-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-top: -25px;
+        .sidebar-menu { list-style: none; padding: 20px 10px; flex-grow: 1; }
+        .sidebar-item {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: #cbd5e1;
+        }
+        .sidebar-item:hover, .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .sidebar-item.active {
+            background-color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.4);
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .global-mode-badge {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .gmode-viewer { background-color: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
+        .gmode-editor { background-color: #fef08a; color: #854d0e; animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow { 0% { opacity: 0.9; } 50% { opacity: 1; } 100% { opacity: 0.9; } }
+
+        /* ==========================================
+           MAIN CONTENT AREA
+        ========================================== */
+        main {
+            margin-left: 280px;
+            flex-grow: 1;
+            padding: 40px;
+            min-width: 0; /* ป้องกันเนื้อหาดันตารางทะลุจอ */
+        }
+
+        .page-section { display: none; }
+        .page-section.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .page-header {
             margin-bottom: 25px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+        }
+        .page-header h1 { font-size: 1.8rem; color: var(--text-main); }
+        .page-header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 4px; }
+
+        /* การ์ดสถิติต่างๆ (แชร์ดีไซน์) */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
         .stat-card {
             background: var(--bg-card);
-            border-radius: 14px;
-            padding: 22px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
             border: 1px solid var(--border);
-            transition: transform 0.2s;
         }
-        .stat-card:hover { transform: translateY(-2px); }
-        .stat-card h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-card .value { font-size: 1.9rem; font-weight: 700; color: var(--primary-dark); font-family: 'Chakra Petch', sans-serif; }
+        .stat-card h3 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--primary-dark); font-family: 'Chakra Petch', sans-serif; }
         
-        .card-countdown { background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%); border: 1px solid #fecdd3; }
+        .card-countdown { background: var(--countdown-bg); border-dash: 1px solid #fecdd3; }
         .card-countdown h3 { color: #be123c; }
-        .countdown-display { font-family: 'Chakra Petch', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--countdown-text); }
-        .countdown-unit { font-size: 0.85rem; color: #9f1239; font-weight: normal; font-family: 'Sarabun', sans-serif; margin-right: 3px; }
+        .countdown-display { font-family: 'Chakra Petch', sans-serif; font-size: 1.45rem; font-weight: 700; color: var(--countdown-text); }
+        .countdown-unit { font-size: 0.8rem; color: #9f1239; margin-right: 2px; }
 
-        .progress-container { background-color: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-top: 12px; overflow: hidden; }
-        .progress-bar { background-color: var(--secondary); height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .progress-container { background-color: #e2e8f0; border-radius: 10px; height: 8px; width: 100%; margin-top: 10px; overflow: hidden; }
+        .progress-bar { background-color: var(--primary); height: 100%; width: 0%; transition: width 0.4s; }
 
-        /* User Mode Badge */
-        .mode-badge {
-            display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-top: 10px; font-family: 'Chakra Petch', sans-serif;
-        }
-        .mode-viewer-style { background-color: rgba(255, 255, 255, 0.15); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
-        .mode-editor-style { background-color: #fef08a; color: #854d0e; animation: pulse-badge 2s infinite; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        @keyframes pulse-badge { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
-
-        /* Action Buttons Toolbar */
-        .toolbar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
+        /*Toolbar & Button*/
+        .toolbar { display: flex; justify-content: flex-end; margin-bottom: 15px; }
         .btn {
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 10px 18px; border-radius: 8px; font-family: 'Chakra Petch', sans-serif; font-size: 0.95rem; font-weight: 600;
+            cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .btn-export { background-color: #2563eb; color: white; }
         .btn-export:hover { background-color: #1d4ed8; }
+        .btn-submit { background-color: var(--primary); color: white; width: 100%; justify-content: center; }
+        .btn-submit:hover { background-color: var(--primary-dark); }
+        .btn-view-img { background-color: #475569; color: white; padding: 4px 10px; font-size: 0.85rem; border-radius: 6px; }
+        .btn-view-img:hover { background-color: #334155; }
+        .btn-delete { background-color: rgba(239, 68, 68, 0.15); color: #dc2626; padding: 4px 10px; font-size: 0.85rem; border-radius: 6px; }
+        .btn-delete:hover { background-color: #dc2626; color: white; }
 
-        /* Table Design */
-        .table-container { 
-            background: var(--bg-card); 
-            border-radius: 14px; 
-            border: 1px solid var(--border); 
-            overflow-x: auto; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
-        }
-        .responsive-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; min-width: 1050px; }
-        .responsive-table th { background-color: #f8fafc; padding: 16px; border-bottom: 2px solid var(--border); color: #475569; font-family: 'Chakra Petch', sans-serif; font-weight: 600; }
-        .responsive-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        /* ระบบตารางดีไซน์โปร่งแสง/สว่าง อ่านง่ายสบายตา */
+        .table-container { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; min-width: 1000px; }
+        th { background-color: #f8fafc; padding: 14px 16px; border-bottom: 2px solid var(--border); color: #475569; }
+        td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
 
-        /* Row Styles */
+        /* ฟอร์มและอินพุตต่างๆ */
+        .form-card { background: var(--bg-card); border-radius: 12px; padding: 25px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .form-card h2 { font-size: 1.25rem; margin-bottom: 15px; color: var(--primary-dark); display: flex; align-items: center; gap: 6px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Sarabun', sans-serif; font-size: 0.9rem; outline: none; background-color: #f8fafc; }
+        .form-control:focus { border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); }
+
+        /* แผนซ้อมองค์ประกอบย่อย */
         .row-weekend { background-color: #fcfcfc; }
-        .row-study { background-color: var(--accent-study-light); }
-        .row-special { background-color: var(--accent-comp-light); font-weight: 500; }
-
-        /* Badges */
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin-top: 6px; }
+        .row-study { background-color: #fff7ed; }
+        .row-special { background-color: #eff6ff; font-weight: 500; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin-top: 4px; }
         .badge-study { background-color: #ffedd5; color: #c2410c; }
         .badge-final { background-color: #fef08a; color: #854d0e; }
         .badge-travel { background-color: #dbeafe; color: #1d4ed8; }
         .badge-comp { background-color: #e0f2fe; color: #0369a1; }
-        .phase-indicator { font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 3px 8px; border-radius: 5px; display: inline-block; font-weight: 500; }
-
-        /* Form Inputs */
-        .input-task, .textarea-progress {
-            width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Sarabun', sans-serif; font-size: 0.9rem; outline: none; background-color: #f8fafc; transition: all 0.2s; resize: vertical;
-        }
-        .input-task:focus, .textarea-progress:focus { border-color: var(--secondary); background-color: #fff; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+        .phase-indicator { font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 3px 8px; border-radius: 5px; display: inline-block; }
         
-        /* Time Input Design (24-Hour format) */
-        .time-picker-box { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+        .time-picker-box { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
         .input-time-real { padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; font-family: 'Chakra Petch', sans-serif; width: 95px; background-color: #f8fafc; }
-        .input-time-real:focus { border-color: var(--secondary); background-color: #fff; outline: none; }
-
-        /* Time Compare Badges */
-        .diff-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; font-family: 'Chakra Petch', sans-serif; margin-top: 4px; }
-        .diff-plus { background-color: #d1fae5; color: #065f46; }
-        .diff-minus { background-color: #fee2e2; color: #991b1b; }
-        .diff-equal { background-color: #f1f5f9; color: #475569; }
-
-        /* Disabled elements on Viewer Mode */
-        .input-task:disabled, .textarea-progress:disabled {
-            background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; cursor: default; padding: 0; box-shadow: none !important; resize: none;
-        }
-        .input-time-real:disabled {
-            background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; font-weight: 600; padding: 0; width: auto;
-        }
-        .select-status:disabled {
-            border-color: transparent !important; cursor: default; -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-left: 4px;
-        }
-
-        .select-status { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; width: 100%; cursor: pointer; transition: all 0.2s; }
+        .select-status { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; width: 100%; cursor: pointer; }
         .status-pending { background-color: #f1f5f9; color: #475569; }
-        .status-ongoing { background-color: #fef9c3; color: #a16207; border-color: #fef08a; }
-        .status-done { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
-        
-        .live-indicator { display: inline-block; width: 9px; height: 9px; background-color: #22c55e; border-radius: 50%; animation: pulse 1.6s infinite; margin-right: 6px; vertical-align: middle; }
-        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        .status-ongoing { background-color: #fef9c3; color: #a16207; }
+        .status-done { background-color: #d1fae5; color: #065f46; }
 
-        .toast-notify {
-            position: fixed; bottom: 24px; right: 24px; background-color: #1e293b; color: white;
-            padding: 14px 24px; border-radius: 10px; font-weight: 500; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            display: none; z-index: 1000; animation: slideUp 0.2s ease-out; font-family: 'Chakra Petch', sans-serif; font-size: 0.95rem;
-        }
-        @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* บัญชีรายรับรายจ่ายองค์ประกอบย่อย */
+        .type-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .type-inc { background-color: #d1fae5; color: var(--income); }
+        .type-exp { background-color: #fee2e2; color: var(--expense); }
+        .amt-inc { color: var(--income); font-weight: bold; }
+        .amt-exp { color: var(--expense); font-weight: bold; }
+        .no-data { text-align: center; padding: 35px; color: var(--text-muted); font-size: 0.95rem; }
+
+        /* ปิดองค์ประกอบในโหมดส่องดู (Viewer) */
+        .form-control:disabled { background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; padding: 0; box-shadow: none !important; resize: none; cursor: default; }
+        .input-time-real:disabled { background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; font-weight: 600; padding: 0; width: auto; }
+        .select-status:disabled { border-color: transparent !important; cursor: default; appearance: none; -webkit-appearance: none; padding-left: 0; }
+
+        /* Modal & Popups */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { max-width: 90%; max-height: 85vh; border-radius: 8px; }
+        .modal-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 1.8rem; cursor: pointer; font-family: 'Chakra Petch'; }
+        
+        .toast { position: fixed; bottom: 24px; right: 24px; background-color: #1e293b; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 500; display: none; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: 'Chakra Petch'; font-size: 0.95rem; }
     </style>
 
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
-    <header>
-        <div class="container">
-            <h1>🏆 World GreenMech Contest 2026</h1>
-            <p><span class="live-indicator"></span> แดชบอร์ดเรียลไทม์ ทีม PT Avatar GreenTech (เริ่มซ้อม จันทร์ที่ 8 มิ.ย.)</p>
-            <div id="user-mode-tag" class="mode-badge mode-viewer-style">👁️ โหมดผู้เข้าชม (อ่านอย่างเดียว)</div>
+    <!-- SIDEBAR NAVIGATION MENU -->
+    <aside>
+        <div class="sidebar-brand">
+            <h2>PT AVATAR HQ</h2>
+            <p>GreenMech Contest 2026</p>
         </div>
-    </header>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item active" onclick="switchTab('training-section', this)">📅 ตารางและบันทึกการซ้อม</li>
+            <li class="sidebar-item" onclick="switchTab('budget-section', this)">💰 บัญชีรายรับ-รายจ่าย</li>
+        </ul>
+        <div class="sidebar-footer">
+            <div id="global-mode-tag" class="global-mode-badge gmode-viewer">👁️ โหมดผู้เข้าชม</div>
+        </div>
+    </aside>
 
-    <main class="container" style="margin-top: 25px;">
-        <div class="dashboard-summary">
-            <div class="stat-card card-countdown">
-                <h3>⏳ เวลาที่เหลือไปแข่งระดับโลก</h3>
-                <div class="countdown-display" id="countdown-timer">กำลังคำนวณ...</div>
+    <!-- MAIN DASHBOARD SPACE -->
+    <main>
+        
+        <!-- =========================================================
+             SECTION 1: TRAINING SCHEDULE (ตารางแผนการซ้อม)
+        =========================================================  -->
+        <div id="training-section" class="page-section active">
+            <div class="page-header">
+                <h1>📅 ตารางและบันทึกการซ้อมทีม</h1>
+                <p>วางแผน นับถอยหลัง และสรุปชั่วโมงซ้อมจริงของทีมแบบเรียลไทม์</p>
             </div>
-            <div class="stat-card">
-                <h3>ความคืบหน้าภาพรวม</h3>
-                <div class="value" id="stat-progress-percent">0%</div>
-                <div class="progress-container"><div class="progress-bar" id="stat-progress-bar"></div></div>
+
+            <div class="dashboard-grid">
+                <div class="stat-card card-countdown">
+                    <h3>⏳ เวลาที่เหลือไปแข่งระดับโลก</h3>
+                    <div class="countdown-display" id="countdown-timer">กำลังคำนวณ...</div>
+                </div>
+                <div class="stat-card">
+                    <h3>ความคืบหน้าซ้อม</h3>
+                    <div class="value" id="train-progress-percent">0%</div>
+                    <div class="progress-container"><div class="progress-bar" id="train-progress-bar"></div></div>
+                </div>
+                <div class="stat-card">
+                    <h3>จำนวนวันที่ซ้อมเสร็จ</h3>
+                    <div class="value" id="train-days-count">0 / 60 วัน</div>
+                </div>
+                <div class="stat-card">
+                    <h3>ชั่วโมงซ้อมสะสมจริง</h3>
+                    <div class="value" id="train-hours-count">0 / 224.5 ชม.</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>จำนวนวันที่ซ้อมเสร็จ</h3>
-                <div class="value" id="stat-days-count">0 / 60 วัน</div>
+
+            <div class="toolbar">
+                <button class="btn btn-export" onclick="exportTrainingCSV()">📊 ส่งออกแผนซ้อม (CSV)</button>
             </div>
-            <div class="stat-card">
-                <h3>ชั่วโมงซ้อมสะสมจริง</h3>
-                <div class="value" id="stat-hours-count">0 / 224.5 ชม.</div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 110px;">วันที่</th>
+                            <th style="width: 150px;">🎯 เป้าหมายระบบ</th>
+                            <th style="width: 190px;">⏱️ เวลาซ้อมจริง (24h)</th>
+                            <th style="width: 150px;">ระยะเป้าหมาย</th>
+                            <th>🎯 งานที่วางแผน / สิ่งที่จะทำวันนี้</th>
+                            <th>📝 รายงานผลการซ้อมประจำวัน</th>
+                            <th style="width: 130px;">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="training-tbody"></tbody>
+                </table>
             </div>
         </div>
 
-        <div class="toolbar" id="toolbar-area" style="display: none;">
-            <button class="btn btn-export" onclick="exportToCSV()">📊 ส่งออกไฟล์ Excel (CSV)</button>
+        <!-- =========================================================
+             SECTION 2: BUDGET SYSTEM (ระบบบัญชีงบประมาณ)
+        =========================================================  -->
+        <div id="budget-section" class="page-section">
+            <div class="page-header">
+                <h1>💰 บัญชีรายรับ-รายจ่ายในการซื้อของ</h1>
+                <p>บันทึกประวัติงบประมาณสนับสนุน อุปกรณ์ อะไหล่หุ่นยนต์ และสลิปหลักฐานการซื้อเงิน</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="stat-card" style="border-left: 4px solid var(--income)">
+                    <h3 style="color: var(--income)">รายรับรวม</h3>
+                    <div class="value" id="total-income" style="color: var(--income)">฿0.00</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid var(--expense)">
+                    <h3 style="color: var(--expense)">รายจ่ายรวม</h3>
+                    <div class="value" id="total-expense" style="color: var(--expense)">฿0.00</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid var(--balance)">
+                    <h3 style="color: var(--balance)">คงเหลือสุทธิ</h3>
+                    <div class="value" id="total-balance" style="color: var(--balance)">฿0.00</div>
+                </div>
+            </div>
+
+            <!-- ฟอร์มกรอกบัญชีเฉพาะโหมดแก้ไข -->
+            <div class="form-card" id="budget-form-block" style="display: none;">
+                <h2>➕ บันทึกรายการใหม่</h2>
+                <form id="budget-form" onsubmit="saveNewBudgetRow(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>ประเภท</label>
+                            <select id="form-type" class="form-control">
+                                <option value="income">รายรับ</option>
+                                <option value="expense" selected>รายจ่าย</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>หมวดหมู่</label>
+                            <select id="form-category" class="form-control">
+                                <option value="อุปกรณ์ / อะไหล่">อุปกรณ์ / อะไหล่</option>
+                                <option value="เครื่องมือช่าง">เครื่องมือช่าง</option>
+                                <option value="ค่าเดินทาง / ขนส่ง">ค่าเดินทาง / ขนส่ง</option>
+                                <option value="อาหาร / เครื่องดื่ม">อาหาร / เครื่องดื่ม</option>
+                                <option value="งบสนับสนุน">งบสนับสนุน</option>
+                                <option value="อื่นๆ">อื่นๆ</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>วันที่ซื้อ/รับเงิน</label>
+                            <input type="date" id="form-date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-grid" style="grid-template-columns: 2fr 1fr;">
+                        <div class="form-group">
+                            <label>รายละเอียดรายการ</label>
+                            <input type="text" id="form-detail" class="form-control" placeholder="ระบุชื่อสินค้า เช่น มอเตอร์บัสเลส, แบตเตอรี่ Lipo" required>
+                        </div>
+                        <div class="form-group">
+                            <label>จำนวนเงิน (บาท)</label>
+                            <input type="number" id="form-amount" class="form-control" step="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 18px;">
+                        <label>ลิงก์ URL รูปภาพหลักฐาน (บิลใบเสร็จ / สลิปโอนเงิน)</label>
+                        <input type="url" id="form-img-url" class="form-control" placeholder="วางลิงก์รูปสลิปภาพถ่ายที่นี่...">
+                    </div>
+                    <button type="submit" class="btn btn-submit">💾 บันทึกข้อมูลบัญชีลงคลาวด์</button>
+                </form>
+            </div>
+
+            <div class="toolbar">
+                <button class="btn btn-export" onclick="exportBudgetCSV()">📊 ส่งออกบัญชีการเงิน (CSV)</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">วันที่</th>
+                            <th style="width: 100px;">ประเภท</th>
+                            <th style="width: 160px;">หมวดหมู่</th>
+                            <th>รายละเอียดรายการ</th>
+                            <th style="width: 150px; text-align: right;">จำนวนเงิน</th>
+                            <th style="width: 130px; text-align: center;">รูปหลักฐาน</th>
+                            <th id="th-budget-manage" style="width: 90px; text-align: center; display: none;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="budget-tbody"></tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="table-container">
-            <table class="responsive-table">
-                <thead>
-                    <tr>
-                        <th style="width: 110px;">วันที่</th>
-                        <th style="width: 160px;">🎯 เป้าหมายระบบ</th>
-                        <th style="width: 210px;">⏱️ เวลาที่ซ้อมจริง (24h)</th>
-                        <th style="width: 150px;">ระยะเป้าหมาย</th>
-                        <th>🎯 งานที่วางแผน / สิ่งที่จะทำวันนี้</th>
-                        <th>📝 รายงานความคืบหน้า / ผลการซ้อม</th>
-                        <th style="width: 140px;">สถานะ</th>
-                    </tr>
-                </thead>
-                <tbody id="schedule-tbody"></tbody>
-            </table>
-        </div>
     </main>
 
-    <div class="toast-notify" id="toast-msg">⚡ อัปเดต Cloud เรียบร้อย!</div>
+    <!-- POPUP & OVERLAYS -->
+    <div class="modal" id="img-lightbox" onclick="closeLightbox()">
+        <span class="modal-close" onclick="closeLightbox()">&times; ปิดหน้าต่าง</span>
+        <img class="modal-content" id="lightbox-img" src="" alt="หลักฐาน" onclick="event.stopPropagation()">
+    </div>
+    <div class="toast" id="toast-message">⚡ อัปเดตข้อมูลเรียบร้อย</div>
 
+    <!-- SCRIPT LOGIC ENGINE -->
     <script>
+        // CONFIG FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyB-3PQhZ4B8iSQm-C4gDR3uo-BE5JrbFlc",
             authDomain: "greenmech2026.firebaseapp.com",
@@ -245,9 +404,14 @@
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-        const dbRef = database.ref('greenmech_training_data');
+        const trainDbRef = database.ref('greenmech_training_data');
+        const budgetDbRef = database.ref('greenmech_budget_data');
 
-        // เริ่มตารางใหม่ตั้งแต่วันจันทร์ที่ 8 มิ.ย. 2569 ขยายช่วงเวลาซ้อมให้ครอบคลุมแผนการพัฒนาอย่างละเอียด
+        // CHECK USER MODE FROM GLOBAL URL PARAMETER (?mode=edit)
+        const urlParams = new URLSearchParams(window.location.search);
+        const isEditMode = urlParams.get('mode') === 'edit';
+
+        // RAW DATA SCHEDULE START FROM 8 JUNE 2026
         const rawSchedule = [
             { id: 1, date: "8 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
             { id: 2, date: "9 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
@@ -292,7 +456,7 @@
             { id: 41, date: "18 ก.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 42, date: "19 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 43, date: "20 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 44, date: "21 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบandปรับปรุง" },
+            { id: 44, date: "21 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 45, date: "22 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 46, date: "23 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 47, date: "24 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
@@ -314,79 +478,98 @@
             { id: 63, date: "9 ส.ค.", day: "อาทิตย์", time: "แข่งขัน", hours: 0, note: "วันแข่งขัน", phase: "🔥 แข่งขัน" }
         ];
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const isEditMode = urlParams.get('mode') === 'edit';
-        let cloudData = {};
+        let cloudTrainingData = {};
+        let cloudBudgetData = {};
 
+        // INITIALIZE SYSTEM
         document.addEventListener("DOMContentLoaded", () => {
-            const modeTag = document.getElementById('user-mode-tag');
-            const toolbar = document.getElementById('toolbar-area');
-            
-            if (isEditMode) {
-                modeTag.innerText = "✏️ โหมดแก้ไขข้อมูล (ทีมงาน PT Avatar)";
-                modeTag.className = "mode-badge mode-editor-style";
-                toolbar.style.display = "flex";
-            } else {
-                modeTag.innerText = "👁️ โหมดผู้เข้าชม (Real-time)";
-                modeTag.className = "mode-badge mode-viewer-style";
-                toolbar.style.display = "none";
-            }
+            initGlobalModeUI();
+            initCountdownTimer();
+            document.getElementById('form-date').valueAsDate = new Date();
 
-            initCountdown();
+            // เชื่อมข้อมูล Firebase (เรียลไทม์)
+            trainDbRef.on('value', (snap) => {
+                cloudTrainingData = snap.val() || {};
+                renderTrainingTable();
+                updateTrainingMetrics();
+            });
 
-            dbRef.on('value', (snapshot) => {
-                cloudData = snapshot.val() || {};
-                renderTable();
-                updateMetrics();
+            budgetDbRef.on('value', (snap) => {
+                cloudBudgetData = snap.val() || {};
+                renderBudgetTable();
+                calculateFinancials();
             });
         });
 
-        function initCountdown() {
-            const targetDate = new Date("August 7, 2026 08:00:00").getTime();
+        // TAB NAVIGATION SYSTEM
+        function switchTab(sectionId, element) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // CONTROL MODE GLOBAL
+        function initGlobalModeUI() {
+            const badge = document.getElementById('global-mode-tag');
+            const budgetFormBlock = document.getElementById('budget-form-block');
+            const thBudgetManage = document.getElementById('th-budget-manage');
+
+            if (isEditMode) {
+                badge.innerText = "✏️ โหมดทีมงาน (แก้ไขได้)";
+                badge.className = "global-mode-badge gmode-editor";
+                budgetFormBlock.style.display = "block";
+                thBudgetManage.style.display = "table-cell";
+            } else {
+                badge.innerText = "👁️ โหมดผู้เข้าชม (อ่านอย่างเดียว)";
+                badge.className = "global-mode-badge gmode-viewer";
+                budgetFormBlock.style.display = "none";
+                thBudgetManage.style.display = "none";
+            }
+        }
+
+        // COUNTDOWN TIMER ENGINE
+        function initCountdownTimer() {
+            const destination = new Date("August 7, 2026 08:00:00").getTime();
             setInterval(() => {
                 const now = new Date().getTime();
-                const difference = targetDate - now;
-                if (difference < 0) {
-                    document.getElementById("countdown-timer").innerText = "🏆 การแข่งขันเริ่มต้นขึ้นแล้ว!";
+                const gap = destination - now;
+                if (gap < 0) {
+                    document.getElementById("countdown-timer").innerText = "🏆 การแข่งขันเริ่มต้นแล้ว!";
                     return;
                 }
-                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+                const d = Math.floor(gap / (1000 * 60 * 60 * 24));
+                const h = Math.floor((gap % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((gap % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((gap % (1000 * 60)) / 1000);
 
                 document.getElementById("countdown-timer").innerHTML = `
-                    ${days}<span class="countdown-unit">วัน</span> 
-                    ${hours}<span class="countdown-unit">ชม.</span> 
-                    ${minutes}<span class="countdown-unit">นาที</span> 
-                    ${seconds}<span class="countdown-unit">วิ</span>
+                    ${d}<span class="countdown-unit">วัน</span> ${h}<span class="countdown-unit">ชม.</span> ${m}<span class="countdown-unit">นาที</span> ${s}<span class="countdown-unit">วิ</span>
                 `;
             }, 1000);
         }
 
-        function calculateRealHours(start, end) {
+        function computeDiffHours(start, end) {
             if (!start || !end) return 0;
-            const [startH, startM] = start.split(':').map(Number);
-            const [endH, endM] = end.split(':').map(Number);
-            
-            if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return 0;
-            
-            let diffMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-            if (diffMinutes <= 0) return 0; 
-            
-            return diffMinutes / 60;
+            const [sh, sm] = start.split(':').map(Number);
+            const [eh, em] = end.split(':').map(Number);
+            if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return 0;
+            let mDiff = (eh * 60 + em) - (sh * 60 + sm);
+            return mDiff <= 0 ? 0 : mDiff / 60;
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('schedule-tbody');
-            if (!tbody) return;
+        // ==========================================
+        // RENDER LOGIC: TRAINING
+        // ==========================================
+        function renderTrainingTable() {
+            const tbody = document.getElementById('training-tbody');
+            if(!tbody) return;
             tbody.innerHTML = '';
 
             rawSchedule.forEach(item => {
-                const userState = cloudData[item.id] || { task: '', progress: '', status: 'pending', startTime: '', endTime: '' };
-                
-                let tr = document.createElement('tr');
-                tr.id = `row-${item.id}`;
+                const nodeState = cloudTrainingData[item.id] || { task: '', progress: '', status: 'pending', startTime: '', endTime: '' };
+                const tr = document.createElement('tr');
                 
                 if (item.note === 'เรียน') tr.className = 'row-study';
                 else if (item.hours === 0) tr.className = 'row-special';
@@ -399,66 +582,42 @@
                 else if (item.note === 'วันแข่งขัน') badgeHTML = '<span class="badge badge-comp">วันแข่งขัน 🏆</span>';
 
                 let statusClass = 'status-pending';
-                if (userState.status === 'ongoing') statusClass = 'status-ongoing';
-                if (userState.status === 'done') statusClass = 'status-done';
+                if (nodeState.status === 'ongoing') statusClass = 'status-ongoing';
+                if (nodeState.status === 'done') statusClass = 'status-done';
 
                 const disabledAttr = isEditMode ? '' : 'disabled';
-
-                const realHours = calculateRealHours(userState.startTime, userState.endTime);
-                let diffHTML = '';
-                if (item.hours > 0 && (userState.startTime || userState.endTime)) {
-                    let diff = realHours - item.hours;
-                    if (diff > 0) {
-                        diffHTML = `<span class="diff-tag diff-plus">+${diff.toFixed(1)} ชม.</span>`;
-                    } else if (diff < 0) {
-                        diffHTML = `<span class="diff-tag diff-minus">-${Math.abs(diff).toFixed(1)} ชม.</span>`;
-                    } else {
-                        diffHTML = `<span class="diff-tag diff-equal">ตามเป้า</span>`;
-                    }
+                const actHours = computeDiffHours(nodeState.startTime, nodeState.endTime);
+                
+                let diffTagHTML = '';
+                if (item.hours > 0 && (nodeState.startTime || nodeState.endTime)) {
+                    let diff = actHours - item.hours;
+                    if (diff > 0) diffTagHTML = `<span style="font-size:0.75rem; color:#065f46; background:#d1fae5; padding:1px 4px; border-radius:3px;">+${diff.toFixed(1)} ชม.</span>`;
+                    else if (diff < 0) diffTagHTML = `<span style="font-size:0.75rem; color:#991b1b; background:#fee2e2; padding:1px 4px; border-radius:3px;">-${Math.abs(diff).toFixed(1)} ชม.</span>`;
                 }
 
-                let realTimeColHTML = '';
-                if (isEditMode) {
-                    realTimeColHTML = `
-                        <div class="time-picker-box">
-                            <span style="font-size:0.8rem; width:30px;">เริ่ม:</span>
-                            <input type="time" class="input-time-real" value="${userState.startTime || ''}" onchange="saveRealtime(${item.id}, 'startTime', this.value)">
-                        </div>
-                        <div class="time-picker-box">
-                            <span style="font-size:0.8rem; width:30px;">เลิก:</span>
-                            <input type="time" class="input-time-real" value="${userState.endTime || ''}" onchange="saveRealtime(${item.id}, 'endTime', this.value)">
-                        </div>
-                        ${realHours > 0 ? `<div style="font-size:0.85rem; font-weight:600; color:var(--primary-dark)">จริง: ${realHours.toFixed(1)} ชม.</div>` : ''}
-                        ${diffHTML}
+                let timeCol = '';
+                if(isEditMode) {
+                    timeCol = `
+                        <div class="time-picker-box">เริ่ม: <input type="time" class="input-time-real" value="${nodeState.startTime || ''}" onchange="updateCloudTrain(${item.id}, 'startTime', this.value)"></div>
+                        <div class="time-picker-box">เลิก: <input type="time" class="input-time-real" value="${nodeState.endTime || ''}" onchange="updateCloudTrain(${item.id}, 'endTime', this.value)"></div>
+                        ${diffTagHTML}
                     `;
                 } else {
-                    if (userState.startTime && userState.endTime) {
-                        realTimeColHTML = `
-                            <span style="font-weight:600; color:var(--primary-dark); font-family:'Chakra Petch'">${userState.startTime} - ${userState.endTime} น.</span><br>
-                            <span style="font-size:0.85rem; color:var(--text-muted);">(ซ้อมจริง ${realHours.toFixed(1)} ชม.)</span><br>
-                            ${diffHTML}
-                        `;
-                    } else {
-                        realTimeColHTML = `<span style="color:var(--text-muted); font-size:0.9rem;">- ยังไม่ลงเวลา -</span>`;
-                    }
+                    timeCol = nodeState.startTime ? `<strong>${nodeState.startTime} - ${nodeState.endTime} น.</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">(จริง ${actHours.toFixed(1)} ชม.)</span><br>${diffTagHTML}` : `<span style="color:var(--text-muted); font-size:0.85rem;">-</span>`;
                 }
 
                 tr.innerHTML = `
-                    <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${item.day}</span></td>
-                    <td>
-                        <span style="font-weight:500; color:var(--text-muted);">${item.time} น.</span><br>
-                        ${item.hours > 0 ? `<span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">(เป้า: ${item.hours} ชม.)</span>`:''}
-                        <br>${badgeHTML}
-                    </td>
-                    <td>${realTimeColHTML}</td>
+                    <td><strong>${item.date}</strong><br><span style="color:var(--text-muted); font-size:0.8rem;">${item.day}</span></td>
+                    <td><span style="font-size:0.9rem;">${item.time} น.</span><br><span style="font-size:0.75rem; color:var(--text-muted);">เป้า: ${item.hours} ชม.</span><br>${badgeHTML}</td>
+                    <td>${timeCol}</td>
                     <td><span class="phase-indicator">${item.phase}</span></td>
-                    <td><input type="text" id="input-task-${item.id}" class="input-task" placeholder="${isEditMode ? 'ระบุเป้าหมาย...' : '-'}" value="${userState.task || ''}" ${disabledAttr} onchange="saveRealtime(${item.id}, 'task', this.value)"></td>
-                    <td><textarea id="textarea-progress-${item.id}" class="textarea-progress" rows="1" placeholder="${isEditMode ? 'พิมพ์สรุปผล...' : '-'}" ${disabledAttr} onchange="saveRealtime(${item.id}, 'progress', this.value)">${userState.progress || ''}</textarea></td>
+                    <td><input type="text" class="form-control" value="${nodeState.task || ''}" placeholder="${isEditMode?'พิมพ์งานวันนี้...':'-'}" ${disabledAttr} onchange="updateCloudTrain(${item.id}, 'task', this.value)"></td>
+                    <td><input type="text" class="form-control" value="${nodeState.progress || ''}" placeholder="${isEditMode?'พิมพ์สรุปผลวันนี้...':'-'}" ${disabledAttr} onchange="updateCloudTrain(${item.id}, 'progress', this.value)"></td>
                     <td>
-                        <select id="select-status-${item.id}" class="select-status ${statusClass}" ${disabledAttr} onchange="saveRealtime(${item.id}, 'status', this.value)">
-                            <option value="pending" class="status-pending" ${userState.status === 'pending' ? 'selected' : ''}>⏳ ยังไม่เริ่ม</option>
-                            <option value="ongoing" class="status-ongoing" ${userState.status === 'ongoing' ? 'selected' : ''}>🔄 กำลังทำ</option>
-                            <option value="done" class="status-done" ${userState.status === 'done' ? 'selected' : ''}>✅ สำเร็จแล้ว</option>
+                        <select class="select-status ${statusClass}" ${disabledAttr} onchange="updateCloudTrain(${item.id}, 'status', this.value)">
+                            <option value="pending" class="status-pending" ${nodeState.status==='pending'?'selected':''}>⏳ ยังไม่เริ่ม</option>
+                            <option value="ongoing" class="status-ongoing" ${nodeState.status==='ongoing'?'selected':''}>🔄 กำลังทำ</option>
+                            <option value="done" class="status-done" ${nodeState.status==='done'?'selected':''}>✅ สำเร็จแล้ว</option>
                         </select>
                     </td>
                 `;
@@ -466,65 +625,155 @@
             });
         }
 
-        function saveRealtime(id, field, value) {
-            if (!isEditMode) return;
-            database.ref('greenmech_training_data/' + id).update({
-                [field]: value
+        function updateCloudTrain(id, field, val) {
+            if(!isEditMode) return;
+            trainDbRef.child(id).update({ [field]: val }).then(() => displayToast());
+        }
+
+        function updateTrainingMetrics() {
+            const validDays = rawSchedule.filter(x => x.hours > 0);
+            let doneCount = 0, hourAcc = 0;
+            validDays.forEach(day => {
+                const dState = cloudTrainingData[day.id] || { status: 'pending', startTime: '', endTime: '' };
+                if(dState.status === 'done') doneCount++;
+                hourAcc += computeDiffHours(dState.startTime, dState.endTime);
+            });
+            const p = Math.round((doneCount / validDays.length) * 100) || 0;
+            document.getElementById('train-progress-percent').innerText = p + '%';
+            document.getElementById('train-progress-bar').style.width = p + '%';
+            document.getElementById('train-days-count').innerText = `${doneCount} / ${validDays.length} วัน`;
+            document.getElementById('train-hours-count').innerText = `${hourAcc.toFixed(1)} / 224.5 ชม.`;
+        }
+
+        // ==========================================
+        // RENDER LOGIC: BUDGETS
+        // ==========================================
+        function saveNewBudgetRow(e) {
+            e.preventDefault();
+            if(!isEditMode) return;
+            const newRef = budgetDbRef.push();
+            newRef.set({
+                id: newRef.key,
+                type: document.getElementById('form-type').value,
+                category: document.getElementById('form-category').value,
+                date: document.getElementById('form-date').value,
+                detail: document.getElementById('form-detail').value,
+                amount: parseFloat(document.getElementById('form-amount').value) || 0,
+                imgUrl: document.getElementById('form-img-url').value
             }).then(() => {
-                showToast("⚡ บันทึกและคำนวณเวลาเรียบร้อย!");
+                displayToast();
+                document.getElementById('form-detail').value = '';
+                document.getElementById('form-amount').value = '';
+                document.getElementById('form-img-url').value = '';
+                document.getElementById('form-date').valueAsDate = new Date();
             });
         }
 
-        function updateMetrics() {
-            const trainingDays = rawSchedule.filter(item => item.hours > 0);
-            let completedDays = 0;
-            let totalActualHours = 0;
+        function deleteBudgetRow(key) {
+            if(!isEditMode) return;
+            if(confirm("ยืนยันที่จะลบรายการบัญชีนี้ใช่หรือไม่?")) {
+                budgetDbRef.child(key).remove().then(() => displayToast());
+            }
+        }
 
-            trainingDays.forEach(day => {
-                const dayState = cloudData[day.id] || { status: 'pending', startTime: '', endTime: '' };
-                if (dayState.status === 'done') {
-                    completedDays++;
+        function renderBudgetTable() {
+            const tbody = document.getElementById('budget-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            const keys = Object.keys(cloudBudgetData);
+            if(keys.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${isEditMode?7:6}" class="no-data">❌ ยังไม่มีการบันทึกข้อมูลรายรับรายจ่ายในระบบ</td></tr>`;
+                return;
+            }
+
+            const sorted = keys.map(k => ({key: k, ...cloudBudgetData[k]})).sort((a,b)=> new Date(b.date) - new Date(a.date));
+            sorted.forEach(item => {
+                const tr = document.createElement('tr');
+                const fmtCash = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(item.amount);
+                
+                let proofHTML = `<span style="color:var(--text-muted); font-size:0.85rem;">ไม่มีหลักฐาน</span>`;
+                if(item.imgUrl && item.imgUrl.trim() !== '') {
+                    proofHTML = `<button class="btn btn-view-img" onclick="openLightbox('${item.imgUrl.replace(/'/g, "\\'")}')">🖼️ บิล/สลิป</button>`;
                 }
-                const realHours = calculateRealHours(dayState.startTime, dayState.endTime);
-                totalActualHours += realHours;
-            });
 
-            const percent = Math.round((completedDays / trainingDays.length) * 100) || 0;
-            document.getElementById('stat-progress-percent').innerText = percent + '%';
-            document.getElementById('stat-progress-bar').style.width = percent + '%';
-            document.getElementById('stat-days-count').innerText = completedDays + ' / ' + trainingDays.length + ' วัน';
-            document.getElementById('stat-hours-count').innerText = totalActualHours.toFixed(1) + ' / 224.5 ชม.';
+                const tBadge = item.type === 'income' ? `<span class="type-badge type-inc">รายรับ</span>` : `<span class="type-badge type-exp">รายจ่าย</span>`;
+                const cStyle = item.type === 'income' ? 'amt-inc' : 'amt-exp';
+                const prefix = item.type === 'income' ? '+ ' : '- ';
+
+                let dDate = item.date;
+                if(item.date) { dDate = new Date(item.date).toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'}); }
+
+                tr.innerHTML = `
+                    <td><strong>${dDate}</strong></td>
+                    <td>${tBadge}</td>
+                    <td><span style="color:var(--text-muted); font-size:0.9rem;">${item.category}</span></td>
+                    <td><strong>${item.detail}</strong></td>
+                    <td style="text-align: right;" class="${cStyle}">${prefix}${fmtCash}</td>
+                    <td style="text-align: center;">${proofHTML}</td>
+                    ${isEditMode ? `<td style="text-align: center;"><button class="btn btn-delete" onclick="deleteBudgetRow('${item.key}')">🗑️ ลบ</button></td>` : ''}
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast-msg');
-            toast.innerText = msg;
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 1500);
+        function calculateFinancials() {
+            let inc = 0, exp = 0;
+            Object.values(cloudBudgetData).forEach(x => {
+                if(x.type === 'income') inc += parseFloat(x.amount) || 0;
+                else exp += parseFloat(x.amount) || 0;
+            });
+            const bal = inc - exp;
+            const thFmt = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' });
+            
+            document.getElementById('total-income').innerText = thFmt.format(inc);
+            document.getElementById('total-expense').innerText = thFmt.format(exp);
+            document.getElementById('total-balance').innerText = thFmt.format(bal);
+            document.getElementById('total-balance').style.color = bal >= 0 ? "var(--balance)" : "var(--expense)";
         }
 
-        function exportToCSV() {
-            let csvContent = "\uFEFF"; 
-            csvContent += "วันที่,วัน,เวลาเป้าหมาย,ชั่วโมงเป้าหมาย,เวลาเข้าจริง,เวลาออกจริง,ชั่วโมงซ้อมจริง,ระยะเป้าหมาย,งานที่วางแผน,รายงานผลการซ้อม,สถานะ\n";
+        // UTILITY: LIGHTBOX MODAL & TOAST ALERT
+        function openLightbox(url) {
+            document.getElementById('lightbox-img').src = url;
+            document.getElementById('img-lightbox').style.display = 'flex';
+        }
+        function closeLightbox() { document.getElementById('img-lightbox').style.display = 'none'; }
+        function displayToast() {
+            const t = document.getElementById('toast-message');
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 1500);
+        }
 
-            rawSchedule.forEach(item => {
-                const userState = cloudData[item.id] || { task: '', progress: '', status: 'pending', startTime:'', endTime:'' };
-                let statusText = "ยังไม่เริ่ม";
-                if(userState.status === 'ongoing') statusText = "กำลังทำ";
-                if(userState.status === 'done') statusText = "สำเร็จแล้ว";
-
-                const realHours = calculateRealHours(userState.startTime, userState.endTime);
-                let task = (userState.task || '').replace(/"/g, '""');
-                let progress = (userState.progress || '').replace(/"/g, '""');
-
-                csvContent += `"${item.date}","${item.day}","${item.time}",${item.hours},"${userState.startTime || ''}","${userState.endTime || ''}",${realHours.toFixed(1)},"${item.phase}","${task}","${progress}","${statusText}"\n`;
+        // ==========================================
+        // EXPORT TO EXCEL SYSTEM (CSV)
+        // ==========================================
+        function exportTrainingCSV() {
+            let csv = "\uFEFFวันที่,วัน,เป้าหมายเวลา,เป้าหมายชม.,เวลาเข้าจริง,เวลาออกจริง,จริงชม.,เฟสการทำงาน,แผนงานวันนี้,ผลบันทึกซ้อม,สถานะ\n";
+            rawSchedule.forEach(x => {
+                const state = cloudTrainingData[x.id] || { task:'', progress:'', status:'pending', startTime:'', endTime:'' };
+                let st = "ยังไม่เริ่ม"; if(state.status==='ongoing') st="กำลังทำ"; if(state.status==='done') st="สำเร็จแล้ว";
+                const act = computeDiffHours(state.startTime, state.endTime);
+                csv += `"${x.date}","${x.day}","${x.time}",${x.hours},"${state.startTime || ''}","${state.endTime || ''}",${act.toFixed(1)},"${x.phase}","${(state.task||'').replace(/"/g, '""')}","${(state.progress||'').replace(/"/g, '""')}","${st}"\n`;
             });
+            triggerDownload(csv, "GreenMech_Training_Report.csv");
+        }
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        function exportBudgetCSV() {
+            const keys = Object.keys(cloudBudgetData);
+            if(keys.length === 0) return alert("ไม่มีข้อมูลบัญชีการเงินสำหรับส่งออก");
+            let csv = "\uFEFFวันที่,ประเภท,หมวดหมู่,รายละเอียดสินค้า,จำนวนเงิน(บาท),ลิงก์หลักฐานรูปภาพ\n";
+            const sorted = keys.map(k => cloudBudgetData[k]).sort((a,b)=> new Date(a.date) - new Date(b.date));
+            sorted.forEach(x => {
+                csv += `"${x.date}","${x.type==='income'?'รายรับ':'รายจ่าย'}","${x.category}","${x.detail.replace(/"/g, '""')}",${x.amount},"${x.imgUrl||''}"\n`;
+            });
+            triggerDownload(csv, "GreenMech_Budget_Report.csv");
+        }
+
+        function triggerDownload(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `GreenMech_2026_Training_TimeReport.csv`);
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", filename);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();

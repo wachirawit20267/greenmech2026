@@ -359,7 +359,7 @@
     </main>
 
     <div class="modal" id="img-lightbox" onclick="closeLightbox()">
-        <span class="modal-close" onclick="closeLightbox()">&times; ปิดหน้าต่าง</span>
+        <span class="modal-close" onclick="closeLightbox()">× ปิดหน้าต่าง</span>
         <img class="modal-content" id="lightbox-img" src="" alt="หลักฐาน" onclick="event.stopPropagation()">
     </div>
     <div class="toast" id="toast-message">⚡ อัปเดตข้อมูลเรียบร้อย</div>
@@ -602,11 +602,17 @@
         function updateTrainingMetrics() {
             const validDays = rawSchedule.filter(x => x.hours > 0);
             let doneCount = 0, hourAcc = 0;
+            
             validDays.forEach(day => {
                 const dState = cloudTrainingData[day.id] || { status: 'pending', startTime: '', endTime: '' };
-                if(dState.status === 'done') doneCount++;
-                hourAcc += computeDiffHours(dState.startTime, dState.endTime);
+                
+                // 🛠️ อัปเดตเงื่อนไขตรงนี้: จะนำวันและชั่วโมงซ้อมมาคำนวณสะสม เฉพาะเมื่อสถานะเป็น 'done' (สำเร็จแล้ว) เท่านั้น
+                if (dState.status === 'done') {
+                    doneCount++;
+                    hourAcc += computeDiffHours(dState.startTime, dState.endTime);
+                }
             });
+            
             const p = Math.round((doneCount / validDays.length) * 100) || 0;
             document.getElementById('train-progress-percent').innerText = p + '%';
             document.getElementById('train-progress-bar').style.width = p + '%';
@@ -615,30 +621,23 @@
         }
 
         // ==========================================
-        // NEW ADVANCED LOGIC: AUTO CONVERT GOOGLE DRIVE LINK
+        // AUTO CONVERT GOOGLE DRIVE LINK
         // ==========================================
         function convertDriveLink(url) {
             if (!url) return "";
-            
-            // ตรวจสอบว่าเป็นลิงก์จาก Google Drive หรือไม่
             if (url.includes("drive.google.com")) {
                 let fileId = "";
-                
-                // รูปแบบที่ 1: /file/d/รหัสไอดี/view
                 if (url.includes("/file/d/")) {
                     fileId = url.split("/file/d/")[1].split("/")[0];
                 } 
-                // รูปแบบที่ 2: ?id=รหัสไอดี
                 else if (url.includes("id=")) {
                     fileId = url.split("id=")[1].split("&")[0];
                 }
-                
-                // ถ้าสกัดไอดีเจอ ให้ทำการแปลงโครงสร้างลิงก์เป็นแบบดึงข้อมูลรูปดิบทันที
                 if (fileId) {
                     return "https://lh3.googleusercontent.com/d/" + fileId;
                 }
             }
-            return url; // ถ้าไม่ใช่ลิงก์ Drive (เป็น ImgBB หรือ Discord) ส่งกลับค่าเดิมปกติ
+            return url;
         }
 
         // ==========================================
@@ -649,7 +648,6 @@
             if(!isEditMode) return;
 
             const inputUrlValue = document.getElementById('form-img-url').value.trim();
-            // ทำการแปลงลิงก์อัตโนมัติก่อนส่งขึ้นคลาวด์ Firebase
             const processedUrlValue = convertDriveLink(inputUrlValue);
 
             const newRef = budgetDbRef.push();

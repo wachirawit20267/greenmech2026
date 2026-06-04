@@ -129,7 +129,7 @@
         .stat-card h3 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--primary-dark); font-family: 'Chakra Petch', sans-serif; }
         
-        .card-countdown { background: var(--countdown-bg); border-dash: 1px solid #fecdd3; }
+        .card-countdown { background: var(--countdown-bg); border-style: dashed; border-width: 1px; border-color: #fecdd3; }
         .card-countdown h3 { color: #be123c; }
         .countdown-display { font-family: 'Chakra Petch', sans-serif; font-size: 1.45rem; font-weight: 700; color: var(--countdown-text); }
         .countdown-unit { font-size: 0.8rem; color: #9f1239; margin-right: 2px; }
@@ -193,7 +193,7 @@
         .no-data { text-align: center; padding: 35px; color: var(--text-muted); font-size: 0.95rem; }
 
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { max-width: 90%; max-height: 85vh; border-radius: 8px; }
+        .modal-content { max-width: 90%; max-height: 80vh; object-fit: contain; border-radius: 8px; background-color: #1e293b; }
         .modal-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 1.8rem; cursor: pointer; font-family: 'Chakra Petch'; }
         
         .toast { position: fixed; bottom: 24px; right: 24px; background-color: #1e293b; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 500; display: none; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: 'Chakra Petch'; font-size: 0.95rem; }
@@ -327,8 +327,8 @@
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 18px;">
-                        <label>🔗 ลิงก์รูปภาพสลิปหลักฐาน (Image URL)</label>
-                        <input type="url" id="form-img-url" class="form-control" placeholder="วางลิงก์รูปภาพจากเว็บฝากรูป เช่น Discord, Imgur (เว้นว่างไว้ได้หากไม่มี)">
+                        <label>🔗 ลิงก์รูปภาพสลิปหลักฐาน (รองรับ Google Drive และเว็บฝากรูปทั่วไป)</label>
+                        <input type="url" id="form-img-url" class="form-control" placeholder="วางลิงก์จาก Google Drive หรือเว็บฝากรูป (ระบบจะแปลงให้เป็น Direct Link อัตโนมัติ)">
                     </div>
                     <button type="submit" id="btn-submit-budget" class="btn btn-submit">💾 บันทึกข้อมูลเรียบร้อย</button>
                 </form>
@@ -432,7 +432,7 @@
             { id: 42, date: "19 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 43, date: "20 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 44, date: "21 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 45, date: "22 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 45, date: "22 มิ.ย.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 46, date: "23 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 47, date: "24 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
             { id: 48, date: "25 ก.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
@@ -615,15 +615,44 @@
         }
 
         // ==========================================
-        // BUDGET LOGIC (BACK TO URL SYSTEM)
+        // NEW ADVANCED LOGIC: AUTO CONVERT GOOGLE DRIVE LINK
+        // ==========================================
+        function convertDriveLink(url) {
+            if (!url) return "";
+            
+            // ตรวจสอบว่าเป็นลิงก์จาก Google Drive หรือไม่
+            if (url.includes("drive.google.com")) {
+                let fileId = "";
+                
+                // รูปแบบที่ 1: /file/d/รหัสไอดี/view
+                if (url.includes("/file/d/")) {
+                    fileId = url.split("/file/d/")[1].split("/")[0];
+                } 
+                // รูปแบบที่ 2: ?id=รหัสไอดี
+                else if (url.includes("id=")) {
+                    fileId = url.split("id=")[1].split("&")[0];
+                }
+                
+                // ถ้าสกัดไอดีเจอ ให้ทำการแปลงโครงสร้างลิงก์เป็นแบบดึงข้อมูลรูปดิบทันที
+                if (fileId) {
+                    return "https://lh3.googleusercontent.com/d/" + fileId;
+                }
+            }
+            return url; // ถ้าไม่ใช่ลิงก์ Drive (เป็น ImgBB หรือ Discord) ส่งกลับค่าเดิมปกติ
+        }
+
+        // ==========================================
+        // BUDGET LOGIC
         // ==========================================
         function saveNewBudgetRow(e) {
             e.preventDefault();
             if(!isEditMode) return;
 
-            const imgUrlValue = document.getElementById('form-img-url').value.trim();
+            const inputUrlValue = document.getElementById('form-img-url').value.trim();
+            // ทำการแปลงลิงก์อัตโนมัติก่อนส่งขึ้นคลาวด์ Firebase
+            const processedUrlValue = convertDriveLink(inputUrlValue);
+
             const newRef = budgetDbRef.push();
-            
             newRef.set({
                 id: newRef.key,
                 type: document.getElementById('form-type').value,
@@ -631,7 +660,7 @@
                 date: document.getElementById('form-date').value,
                 detail: document.getElementById('form-detail').value,
                 amount: parseFloat(document.getElementById('form-amount').value) || 0,
-                imgUrl: imgUrlValue
+                imgUrl: processedUrlValue
             }).then(() => {
                 displayToast();
                 document.getElementById('form-detail').value = '';

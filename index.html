@@ -159,6 +159,7 @@
         .form-card { background: var(--bg-card); border-radius: 12px; padding: 25px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .form-card h2 { font-size: 1.25rem; margin-bottom: 15px; color: var(--primary-dark); display: flex; align-items: center; gap: 6px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; gap: 6px; }
         .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
         .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Sarabun', sans-serif; font-size: 0.9rem; outline: none; background-color: #f8fafc; }
@@ -606,10 +607,14 @@
             validDays.forEach(day => {
                 const dState = cloudTrainingData[day.id] || { status: 'pending', startTime: '', endTime: '' };
                 
-                // 🛠️ อัปเดตเงื่อนไขตรงนี้: จะนำวันและชั่วโมงซ้อมมาคำนวณสะสม เฉพาะเมื่อสถานะเป็น 'done' (สำเร็จแล้ว) เท่านั้น
+                // 🚀 เงื่อนไขใหม่: ถ้าระบบขึ้นสถานะ 'ongoing' (กำลังทำ) หรือ 'done' (สำเร็จแล้ว) จะนับชั่วโมงสะสมทันที
+                if (dState.status === 'ongoing' || dState.status === 'done') {
+                    hourAcc += computeDiffHours(dState.startTime, dState.endTime);
+                }
+
+                // นับจำนวนวันที่ซ้อมเสร็จสิ้นสมบูรณ์แล้วจริงๆ สำหรับกล่อง Progress วันซ้อม
                 if (dState.status === 'done') {
                     doneCount++;
-                    hourAcc += computeDiffHours(dState.startTime, dState.endTime);
                 }
             });
             

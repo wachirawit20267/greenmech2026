@@ -260,7 +260,7 @@
                             <th style="width: 150px;">🎯 เป้าหมายระบบ</th>
                             <th style="width: 190px;">⏱️ เวลาซ้อมจริง (24h)</th>
                             <th style="width: 150px;">ระยะเป้าหมาย</th>
-                            <th>🎯 งานที่วางแผน / สิ่งที่จะทำวันนี้</th>
+                            <th>🎯 งานที่วางแผน / สิ่งที่จะทำวันนี้ (🔓 แพลนล่วงหน้าได้)</th>
                             <th>📝 รายงานผลการซ้อมประจำวัน</th>
                             <th style="width: 130px;">สถานะ</th>
                         </tr>
@@ -271,7 +271,6 @@
         </div>
 
         <div id="budget-section" class="page-section">
-            <!-- BUDGET SECTION REMAINS SAME -->
             <div class="page-header">
                 <h1>💰 บัญชีรายรับ-รายจ่ายในการซื้อของ</h1>
                 <p>บันทึกรายรับ-จ่าย งบประมาณสนับสนุน อุปกรณ์ อะไหล่ และรูปหลักฐาน</p>
@@ -388,7 +387,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const isEditMode = urlParams.get('mode') === 'edit';
 
-        // RAW DATA SCHEDULE WITH ISO DATE FIELD
         const rawSchedule = [
             { id: 1, date: "8 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ", iso: "2026-06-08" },
             { id: 2, date: "9 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ", iso: "2026-06-09" },
@@ -530,7 +528,6 @@
             return mDiff <= 0 ? 0 : mDiff / 60;
         }
 
-        // 获取格式化为 YYYY-MM-DD 的 local date string
         function getTodayString() {
             const d = new Date();
             const y = d.getFullYear();
@@ -540,7 +537,7 @@
         }
 
         // ==========================================
-        // TRAINING TABLE LOGIC (LOCK SYSTEM ADDED)
+        // TRAINING TABLE LOGIC (FLEXIBLE UPDATE)
         // ==========================================
         function renderTrainingTable() {
             const tbody = document.getElementById('training-tbody');
@@ -567,9 +564,13 @@
                 if (nodeState.status === 'ongoing') statusClass = 'status-ongoing';
                 if (nodeState.status === 'done') statusClass = 'status-done';
 
-                // 🔥 เงื่อนไขระบบล็อก: จะแก้ไขได้ก็ต่อเมื่ออยู่ในโหมดทีมงาน (isEditMode) และเป็น "วันที่ปัจจุบัน" เท่านั้น
                 const isToday = (item.iso === todayStr);
-                const disabledAttr = (isEditMode && isToday) ? '' : 'disabled';
+                
+                // 🔒 ตัวแปรคุมการล็อก: เวลา, รายงานผล, สถานะ จะแก้ได้เฉพาะ "วันนี้" หน้างานเท่านั้น
+                const isActionDisabled = (isEditMode && isToday) ? '' : 'disabled';
+                
+                // 🔓 ตัวแปรคุมช่อง "งานที่วางแผน": ปลดล็อกให้ทีมงานพิมพ์ได้อิสระ ไม่ว่าจะวันไหนก็ตาม
+                const isTaskDisabled = isEditMode ? '' : 'disabled';
                 
                 const actHours = computeDiffHours(nodeState.startTime, nodeState.endTime);
                 
@@ -591,12 +592,11 @@
                     timeCol = nodeState.startTime ? `<strong>${nodeState.startTime} - ${nodeState.endTime} น.</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">(จริง ${actHours.toFixed(1)} ชม.)</span><br>${diffTagHTML}` : `<span style="color:var(--text-muted); font-size:0.85rem;">-</span>`;
                 }
 
-                // ตกแต่งแถวให้อ่านง่ายขึ้นถ้าระบบล็อกการกรอกล่วงหน้า/ย้อนหลัง
                 let lockIndicator = '';
                 if (item.iso > todayStr) {
-                    lockIndicator = `<br><span style="color:#ef4444; font-size:0.7rem; font-weight:600;">🔒 ล็อก (ยังไม่ถึงวัน)</span>`;
+                    lockIndicator = `<br><span style="color:#b45309; font-size:0.7rem; font-weight:600;">📝 แพลนแผนงานไว้ล่วงหน้าได้</span>`;
                 } else if (item.iso < todayStr) {
-                    lockIndicator = `<br><span style="color:var(--text-muted); font-size:0.7rem;">🔒 ปิดยอดแล้ว</span>`;
+                    lockIndicator = `<br><span style="color:var(--text-muted); font-size:0.7rem;">🔒 ปิดเช็คชื่อแล้ว</span>`;
                 } else {
                     lockIndicator = `<br><span style="color:#10b981; font-size:0.75rem; font-weight:bold;">✨ วันนี้ (เปิดบันทึก)</span>`;
                 }
@@ -606,10 +606,10 @@
                     <td><span style="font-size:0.9rem;">${item.time} น.</span><br><span style="font-size:0.75rem; color:var(--text-muted);">เป้า: ${item.hours} ชม.</span><br>${badgeHTML}</td>
                     <td>${timeCol}</td>
                     <td><span class="phase-indicator">${item.phase}</span></td>
-                    <td><input type="text" class="form-control" value="${nodeState.task || ''}" placeholder="${(isEditMode && isToday)?'พิมพ์งานวันนี้...':'-'}" ${disabledAttr} onchange="updateCloudTrain(${item.id}, 'task', this.value)"></td>
-                    <td><input type="text" class="form-control" value="${nodeState.progress || ''}" placeholder="${(isEditMode && isToday)?'พิมพ์สรุปผลวันนี้...':'-'}" ${disabledAttr} onchange="updateCloudTrain(${item.id}, 'progress', this.value)"></td>
+                    <td><input type="text" class="form-control" value="${nodeState.task || ''}" placeholder="${isEditMode ? '✍️ พิมพ์แผนงานที่นี่...' : '-'}" ${isTaskDisabled} onchange="updateCloudTrain(${item.id}, 'task', this.value)"></td>
+                    <td><input type="text" class="form-control" value="${nodeState.progress || ''}" placeholder="${(isEditMode && isToday)?'พิมพ์สรุปผลวันนี้...':'-'}" ${isActionDisabled} onchange="updateCloudTrain(${item.id}, 'progress', this.value)"></td>
                     <td>
-                        <select class="select-status ${statusClass}" ${disabledAttr} onchange="updateCloudTrain(${item.id}, 'status', this.value)">
+                        <select class="select-status ${statusClass}" ${isActionDisabled} onchange="updateCloudTrain(${item.id}, 'status', this.value)">
                             <option value="pending" class="status-pending" ${nodeState.status==='pending'?'selected':''}>⏳ ยังไม่เริ่ม</option>
                             <option value="ongoing" class="status-ongoing" ${nodeState.status==='ongoing'?'selected':''}>🔄 กำลังทำ</option>
                             <option value="done" class="status-done" ${nodeState.status==='done'?'selected':''}>✅ สำเร็จแล้ว</option>
@@ -750,7 +750,6 @@
             setTimeout(() => t.style.display = 'none', 1500);
         }
 
-        // CSV EXPORTS
         function exportTrainingCSV() {
             let csv = "\uFEFFวันที่,วัน,เป้าหมายเวลา,เป้าหมายชม.,เวลาเข้าจริง,เวลาออกจริง,จริงชม.,เฟสการทำงาน,แผนงานวันนี้,ผลบันทึกซ้อม,สถานะ\n";
             rawSchedule.forEach(x => {

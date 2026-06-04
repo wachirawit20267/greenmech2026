@@ -35,7 +35,7 @@
         h1, h2, h3, th, .heading-font { font-family: 'Chakra Petch', sans-serif; font-weight: 600; }
 
         /* ==========================================
-           SIDEBAR SYSTEM (แถบเลือกหัวข้อซ้ายมือ)
+           SIDEBAR SYSTEM
         ========================================== */
         aside {
             width: 280px;
@@ -93,8 +93,7 @@
             text-align: center;
         }
         .gmode-viewer { background-color: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
-        .gmode-editor { background-color: #fef08a; color: #854d0e; animation: pulse-glow 2s infinite; }
-        @keyframes pulse-glow { 0% { opacity: 0.9; } 50% { opacity: 1; } 100% { opacity: 0.9; } }
+        .gmode-editor { background-color: #fef08a; color: #854d0e; }
 
         /* ==========================================
            MAIN CONTENT AREA
@@ -103,7 +102,7 @@
             margin-left: 280px;
             flex-grow: 1;
             padding: 40px;
-            min-width: 0; /* ป้องกันเนื้อหาดันตารางทะลุจอ */
+            min-width: 0;
         }
 
         .page-section { display: none; }
@@ -118,7 +117,6 @@
         .page-header h1 { font-size: 1.8rem; color: var(--text-main); }
         .page-header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 4px; }
 
-        /* การ์ดสถิติต่างๆ (แชร์ดีไซน์) */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -143,7 +141,6 @@
         .progress-container { background-color: #e2e8f0; border-radius: 10px; height: 8px; width: 100%; margin-top: 10px; overflow: hidden; }
         .progress-bar { background-color: var(--primary); height: 100%; width: 0%; transition: width 0.4s; }
 
-        /*Toolbar & Button*/
         .toolbar { display: flex; justify-content: flex-end; margin-bottom: 15px; }
         .btn {
             padding: 10px 18px; border-radius: 8px; font-family: 'Chakra Petch', sans-serif; font-size: 0.95rem; font-weight: 600;
@@ -153,18 +150,17 @@
         .btn-export:hover { background-color: #1d4ed8; }
         .btn-submit { background-color: var(--primary); color: white; width: 100%; justify-content: center; }
         .btn-submit:hover { background-color: var(--primary-dark); }
+        .btn-submit:disabled { background-color: #a1a1aa; cursor: not-allowed; }
         .btn-view-img { background-color: #475569; color: white; padding: 4px 10px; font-size: 0.85rem; border-radius: 6px; }
         .btn-view-img:hover { background-color: #334155; }
         .btn-delete { background-color: rgba(239, 68, 68, 0.15); color: #dc2626; padding: 4px 10px; font-size: 0.85rem; border-radius: 6px; }
         .btn-delete:hover { background-color: #dc2626; color: white; }
 
-        /* ระบบตารางดีไซน์โปร่งแสง/สว่าง อ่านง่ายสบายตา */
         .table-container { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; min-width: 1000px; }
         th { background-color: #f8fafc; padding: 14px 16px; border-bottom: 2px solid var(--border); color: #475569; }
         td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
 
-        /* ฟอร์มและอินพุตต่างๆ */
         .form-card { background: var(--bg-card); border-radius: 12px; padding: 25px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .form-card h2 { font-size: 1.25rem; margin-bottom: 15px; color: var(--primary-dark); display: flex; align-items: center; gap: 6px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
@@ -173,7 +169,6 @@
         .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Sarabun', sans-serif; font-size: 0.9rem; outline: none; background-color: #f8fafc; }
         .form-control:focus { border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); }
 
-        /* แผนซ้อมองค์ประกอบย่อย */
         .row-weekend { background-color: #fcfcfc; }
         .row-study { background-color: #fff7ed; }
         .row-special { background-color: #eff6ff; font-weight: 500; }
@@ -191,7 +186,10 @@
         .status-ongoing { background-color: #fef9c3; color: #a16207; }
         .status-done { background-color: #d1fae5; color: #065f46; }
 
-        /* บัญชีรายรับรายจ่ายองค์ประกอบย่อย */
+        .form-control:disabled { background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; padding: 0; box-shadow: none !important; resize: none; cursor: default; }
+        .input-time-real:disabled { background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; font-weight: 600; padding: 0; width: auto; }
+        .select-status:disabled { border-color: transparent !important; cursor: default; appearance: none; -webkit-appearance: none; padding-left: 0; }
+
         .type-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
         .type-inc { background-color: #d1fae5; color: var(--income); }
         .type-exp { background-color: #fee2e2; color: var(--expense); }
@@ -199,12 +197,6 @@
         .amt-exp { color: var(--expense); font-weight: bold; }
         .no-data { text-align: center; padding: 35px; color: var(--text-muted); font-size: 0.95rem; }
 
-        /* ปิดองค์ประกอบในโหมดส่องดู (Viewer) */
-        .form-control:disabled { background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; padding: 0; box-shadow: none !important; resize: none; cursor: default; }
-        .input-time-real:disabled { background-color: transparent !important; border-color: transparent !important; color: var(--text-main) !important; font-weight: 600; padding: 0; width: auto; }
-        .select-status:disabled { border-color: transparent !important; cursor: default; appearance: none; -webkit-appearance: none; padding-left: 0; }
-
-        /* Modal & Popups */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 20px; }
         .modal-content { max-width: 90%; max-height: 85vh; border-radius: 8px; }
         .modal-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 1.8rem; cursor: pointer; font-family: 'Chakra Petch'; }
@@ -212,9 +204,11 @@
         .toast { position: fixed; bottom: 24px; right: 24px; background-color: #1e293b; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 500; display: none; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: 'Chakra Petch'; font-size: 0.95rem; }
     </style>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <!-- เพิ่ม Firebase Storage SDK เพื่อรองรับการอัปโหลดรูปตรงๆ -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 
@@ -311,7 +305,7 @@
                 </div>
             </div>
 
-            <!-- ฟอร์มกรอกบัญชีเฉพาะโหมดแก้ไข -->
+            <!-- ฟอร์มกรอกบัญชีและอัปโหลดรูปแบบไม่ต้องใช้ลิงก์ -->
             <div class="form-card" id="budget-form-block" style="display: none;">
                 <h2>➕ บันทึกรายการใหม่</h2>
                 <form id="budget-form" onsubmit="saveNewBudgetRow(event)">
@@ -342,18 +336,19 @@
                     <div class="form-grid" style="grid-template-columns: 2fr 1fr;">
                         <div class="form-group">
                             <label>รายละเอียดรายการ</label>
-                            <input type="text" id="form-detail" class="form-control" placeholder="ระบุชื่อสินค้า เช่น มอเตอร์บัสเลส, แบตเตอรี่ Lipo" required>
+                            <input type="text" id="form-detail" class="form-control" placeholder="ระบุชื่อสินค้า เช่น มอเตอร์, บอร์ดควบคุม" required>
                         </div>
                         <div class="form-group">
                             <label>จำนวนเงิน (บาท)</label>
                             <input type="number" id="form-amount" class="form-control" step="0.01" placeholder="0.00" required>
                         </div>
                     </div>
+                    <!-- เปลี่ยนช่องกรอก URL เป็นกล่องกดเลือกอัปโหลดรูปโดยตรง -->
                     <div class="form-group" style="margin-bottom: 18px;">
-                        <label>ลิงก์ URL รูปภาพหลักฐาน (บิลใบเสร็จ / สลิปโอนเงิน)</label>
-                        <input type="url" id="form-img-url" class="form-control" placeholder="วางลิงก์รูปสลิปภาพถ่ายที่นี่...">
+                        <label>📎 แนบรูปหลักฐาน (เลือกไฟล์รูปภาพ บิล/ใบเสร็จ/สลิปโอนเงิน จากเครื่องได้เลย)</label>
+                        <input type="file" id="form-file-input" class="form-control" accept="image/*" style="background: white;">
                     </div>
-                    <button type="submit" class="btn btn-submit">💾 บันทึกข้อมูลบัญชีลงคลาวด์</button>
+                    <button type="submit" id="btn-submit-budget" class="btn btn-submit">💾 บันทึกข้อมูลและอัปโหลดรูปภาพ</button>
                 </form>
             </div>
 
@@ -404,14 +399,15 @@
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const storage = firebase.storage(); // เรียกใช้งาน Cloud Storage สำหรับเก็บไฟล์รูปภาพ
+        
         const trainDbRef = database.ref('greenmech_training_data');
         const budgetDbRef = database.ref('greenmech_budget_data');
 
-        // CHECK USER MODE FROM GLOBAL URL PARAMETER (?mode=edit)
         const urlParams = new URLSearchParams(window.location.search);
         const isEditMode = urlParams.get('mode') === 'edit';
 
-        // RAW DATA SCHEDULE START FROM 8 JUNE 2026
+        // RAW DATA SCHEDULE
         const rawSchedule = [
             { id: 1, date: "8 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
             { id: 2, date: "9 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
@@ -481,13 +477,11 @@
         let cloudTrainingData = {};
         let cloudBudgetData = {};
 
-        // INITIALIZE SYSTEM
         document.addEventListener("DOMContentLoaded", () => {
             initGlobalModeUI();
             initCountdownTimer();
             document.getElementById('form-date').valueAsDate = new Date();
 
-            // เชื่อมข้อมูล Firebase (เรียลไทม์)
             trainDbRef.on('value', (snap) => {
                 cloudTrainingData = snap.val() || {};
                 renderTrainingTable();
@@ -501,16 +495,13 @@
             });
         });
 
-        // TAB NAVIGATION SYSTEM
         function switchTab(sectionId, element) {
             document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-            
             document.getElementById(sectionId).classList.add('active');
             element.classList.add('active');
         }
 
-        // CONTROL MODE GLOBAL
         function initGlobalModeUI() {
             const badge = document.getElementById('global-mode-tag');
             const budgetFormBlock = document.getElementById('budget-form-block');
@@ -529,7 +520,6 @@
             }
         }
 
-        // COUNTDOWN TIMER ENGINE
         function initCountdownTimer() {
             const destination = new Date("August 7, 2026 08:00:00").getTime();
             setInterval(() => {
@@ -560,7 +550,7 @@
         }
 
         // ==========================================
-        // RENDER LOGIC: TRAINING
+        // TRAINING TABLE LOGIC
         // ==========================================
         function renderTrainingTable() {
             const tbody = document.getElementById('training-tbody');
@@ -646,12 +636,49 @@
         }
 
         // ==========================================
-        // RENDER LOGIC: BUDGETS
+        // BUDGET & FILE UPLOAD REAL LOGIC
         // ==========================================
         function saveNewBudgetRow(e) {
             e.preventDefault();
             if(!isEditMode) return;
+
+            const submitBtn = document.getElementById('btn-submit-budget');
+            const fileInput = document.getElementById('form-file-input');
+            const file = fileInput.files[0];
+
+            // ล็อกปุ่มกดชั่วคราวเพื่อกันการส่งซ้ำตอนอัปโหลด
+            submitBtn.disabled = true;
+            submitBtn.innerText = "⏳ กำลังอัปโหลดรูปภาพและบันทึก...";
+
+            if (file) {
+                // สร้างชื่อไฟล์แบบสุ่มกันชื่อซ้ำใน Cloud Storage
+                const fileExtension = file.name.split('.').pop();
+                const uniqueFileName = `receipt_${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExtension}`;
+                const storageRef = storage.ref('greenmech_receipts/' + uniqueFileName);
+
+                // เริ่มอัปโหลดไฟล์ไปที่ Firebase Storage
+                storageRef.put(file).then((snapshot) => {
+                    // เมื่ออัปโหลดเสร็จ ให้ขอ URL ของไฟล์รูปภาพนั้น
+                    return snapshot.ref.getDownloadURL();
+                }).then((downloadURL) => {
+                    // นำ URL รูปภาพส่งเข้าไปเก็บใน Database พร้อมข้อมูลบัญชี
+                    writeToBudgetDatabase(downloadURL);
+                }).catch((error) => {
+                    console.error("Upload failed: ", error);
+                    alert("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ ลองใหม่อีกครั้งครับ");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "💾 บันทึกข้อมูลและอัปโหลดรูปภาพ";
+                });
+            } else {
+                // ถ้าไม่ได้เลือกไฟล์รูปภาพ ให้บันทึกเฉพาะข้อมูลเป็นค่าว่าง
+                writeToBudgetDatabase("");
+            }
+        }
+
+        function writeToBudgetDatabase(imgUrlValue) {
+            const submitBtn = document.getElementById('btn-submit-budget');
             const newRef = budgetDbRef.push();
+            
             newRef.set({
                 id: newRef.key,
                 type: document.getElementById('form-type').value,
@@ -659,19 +686,31 @@
                 date: document.getElementById('form-date').value,
                 detail: document.getElementById('form-detail').value,
                 amount: parseFloat(document.getElementById('form-amount').value) || 0,
-                imgUrl: document.getElementById('form-img-url').value
+                imgUrl: imgUrlValue // ลิงก์รูปภาพจริงจากระบบ Storage ของทีมเอง
             }).then(() => {
                 displayToast();
+                // ล้างค่าข้อมูลในฟอร์มใหม่ทั้งหมด
                 document.getElementById('form-detail').value = '';
                 document.getElementById('form-amount').value = '';
-                document.getElementById('form-img-url').value = '';
+                document.getElementById('form-file-input').value = ''; // ล้างไฟล์รูป
                 document.getElementById('form-date').valueAsDate = new Date();
+                
+                submitBtn.disabled = false;
+                submitBtn.innerText = "💾 บันทึกข้อมูลและอัปโหลดรูปภาพ";
             });
         }
 
         function deleteBudgetRow(key) {
             if(!isEditMode) return;
             if(confirm("ยืนยันที่จะลบรายการบัญชีนี้ใช่หรือไม่?")) {
+                // ค้นหารูปภาพก่อนว่ารายการนี้มีรูปแนบไหม ถ้ามีให้ลบรูปใน Storage ออกด้วยเพื่อประหยัดพื้นที่
+                const currentItem = cloudBudgetData[key];
+                if(currentItem && currentItem.imgUrl && currentItem.imgUrl.includes("firebase")) {
+                    try {
+                        const fileRef = storage.refFromURL(currentItem.imgUrl);
+                        fileRef.delete().catch(err => console.log("Storage file delete skip/error"));
+                    } catch(e) { console.log("Not a direct firebase storage URL"); }
+                }
                 budgetDbRef.child(key).remove().then(() => displayToast());
             }
         }
@@ -732,7 +771,6 @@
             document.getElementById('total-balance').style.color = bal >= 0 ? "var(--balance)" : "var(--expense)";
         }
 
-        // UTILITY: LIGHTBOX MODAL & TOAST ALERT
         function openLightbox(url) {
             document.getElementById('lightbox-img').src = url;
             document.getElementById('img-lightbox').style.display = 'flex';
@@ -744,9 +782,7 @@
             setTimeout(() => t.style.display = 'none', 1500);
         }
 
-        // ==========================================
-        // EXPORT TO EXCEL SYSTEM (CSV)
-        // ==========================================
+        // CSV EXPORTS
         function exportTrainingCSV() {
             let csv = "\uFEFFวันที่,วัน,เป้าหมายเวลา,เป้าหมายชม.,เวลาเข้าจริง,เวลาออกจริง,จริงชม.,เฟสการทำงาน,แผนงานวันนี้,ผลบันทึกซ้อม,สถานะ\n";
             rawSchedule.forEach(x => {

@@ -34,9 +34,7 @@
         }
         h1, h2, h3, th, .heading-font { font-family: 'Chakra Petch', sans-serif; font-weight: 600; }
 
-        /* ==========================================
-           SIDEBAR SYSTEM
-        ========================================== */
+        /* SIDEBAR SYSTEM */
         aside {
             width: 280px;
             background-color: var(--bg-sidebar);
@@ -95,9 +93,7 @@
         .gmode-viewer { background-color: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
         .gmode-editor { background-color: #fef08a; color: #854d0e; }
 
-        /* ==========================================
-           MAIN CONTENT AREA
-        ========================================== */
+        /* MAIN CONTENT AREA */
         main {
             margin-left: 280px;
             flex-grow: 1;
@@ -150,7 +146,6 @@
         .btn-export:hover { background-color: #1d4ed8; }
         .btn-submit { background-color: var(--primary); color: white; width: 100%; justify-content: center; }
         .btn-submit:hover { background-color: var(--primary-dark); }
-        .btn-submit:disabled { background-color: #a1a1aa; cursor: not-allowed; }
         .btn-view-img { background-color: #475569; color: white; padding: 4px 10px; font-size: 0.85rem; border-radius: 6px; }
         .btn-view-img:hover { background-color: #334155; }
         .btn-delete { background-color: rgba(239, 68, 68, 0.15); color: #dc2626; padding: 4px 10px; font-size: 0.85rem; border-radius: 6px; }
@@ -206,7 +201,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 
@@ -277,7 +271,7 @@
         <div id="budget-section" class="page-section">
             <div class="page-header">
                 <h1>💰 บัญชีรายรับ-รายจ่ายในการซื้อของ</h1>
-                <p>บันทึกประวัติงบประมาณสนับสนุน อุปกรณ์ อะไหล่หุ่นยนต์ และสลิปหลักฐานการซื้อเงิน</p>
+                <p>บันทึกประวัติงบประมาณสนับสนุน อุปกรณ์ อะไหล่หุ่นยนต์ และวางลิงก์รูปหลักฐาน</p>
             </div>
 
             <div class="dashboard-grid">
@@ -333,10 +327,10 @@
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 18px;">
-                        <label>📎 แนบรูปหลักฐาน (ระบบจะย่อขนาดและบีบอัดไฟล์ให้อัตโนมัติเพื่อให้โหลดเสร็จไวขึ้น)</label>
-                        <input type="file" id="form-file-input" class="form-control" accept="image/*" style="background: white;">
+                        <label>🔗 ลิงก์รูปภาพสลิปหลักฐาน (Image URL)</label>
+                        <input type="url" id="form-img-url" class="form-control" placeholder="วางลิงก์รูปภาพจากเว็บฝากรูป เช่น Discord, Imgur (เว้นว่างไว้ได้หากไม่มี)">
                     </div>
-                    <button type="submit" id="btn-submit-budget" class="btn btn-submit">💾 บันทึกข้อมูลและอัปโหลดรูปภาพ</button>
+                    <button type="submit" id="btn-submit-budget" class="btn btn-submit">💾 บันทึกข้อมูลเรียบร้อย</button>
                 </form>
             </div>
 
@@ -385,7 +379,6 @@
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-        const storage = firebase.storage();
         
         const trainDbRef = database.ref('greenmech_training_data');
         const budgetDbRef = database.ref('greenmech_budget_data');
@@ -621,87 +614,14 @@
             document.getElementById('train-hours-count').innerText = `${hourAcc.toFixed(1)} / 224.5 ชม.`;
         }
 
-        // =======================================================
-        // BUDGET LOGIC + AUTOMATIC COMPRESSION & PROGRESS STATUS
-        // =======================================================
+        // ==========================================
+        // BUDGET LOGIC (BACK TO URL SYSTEM)
+        // ==========================================
         function saveNewBudgetRow(e) {
             e.preventDefault();
             if(!isEditMode) return;
 
-            const submitBtn = document.getElementById('btn-submit-budget');
-            const fileInput = document.getElementById('form-file-input');
-            const file = fileInput.files[0];
-
-            submitBtn.disabled = true;
-            submitBtn.innerText = "⏳ กำลังประมวลผลและบีบอัดรูปภาพ...";
-
-            if (file) {
-                // เรียกฟังก์ชันบีบอัดรูปภาพก่อนส่งขึ้น Cloud Storage
-                compressImage(file, 1200, 0.75, function(compressedBlob) {
-                    const fileExtension = file.name.split('.').pop();
-                    const uniqueFileName = `receipt_${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExtension}`;
-                    const storageRef = storage.ref('greenmech_receipts/' + uniqueFileName);
-
-                    // ส่งไฟล์ Blob ที่บีบอัดแล้วขึ้นคลาวด์ พร้อมตรวจเช็กสถานะโหลดแบบ %
-                    const uploadTask = storageRef.put(compressedBlob);
-
-                    uploadTask.on('state_changed', 
-                        (snapshot) => {
-                            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                            submitBtn.innerText = `⏳ กำลังอัปโหลดรูปภาพที่บีบอัดแล้ว (${progress}%) ...`;
-                        }, 
-                        (error) => {
-                            console.error("Upload failed: ", error);
-                            alert("อัปโหลดล้มเหลว: โปรดเช็กสัญญาณอินเทอร์เน็ต หรือตั้งค่า Firebase Rules");
-                            submitBtn.disabled = false;
-                            submitBtn.innerText = "💾 บันทึกข้อมูลและอัปโหลดรูปภาพ";
-                        }, 
-                        () => {
-                            uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                                writeToBudgetDatabase(downloadURL);
-                            });
-                        }
-                    );
-                });
-            } else {
-                writeToBudgetDatabase("");
-            }
-        }
-
-        // ฟังก์ชันบีบอัดขนาดไฟล์ภาพด้วย HTML5 Canvas API (ลดขนาดได้ถึง 80-90% แต่สลิปยังอ่านรู้เรื่อง)
-        function compressImage(file, maxWidth, quality, callback) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function(event) {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-
-                    // ปรับสัดส่วนขนาดกว้างยาวสูงสุด (หากรูปใหญ่กว่าขอบเขตที่ตั้งไว้)
-                    if (width > maxWidth) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // แปลงผลลัพธ์ Canvas เป็นไฟล์ Blob แบบ JPEG พร้อมลด Quality ลงเหลือระนาบที่เหมาะสม
-                    canvas.toBlob(function(blob) {
-                        callback(blob);
-                    }, 'image/jpeg', quality);
-                };
-            };
-        }
-
-        function writeToBudgetDatabase(imgUrlValue) {
-            const submitBtn = document.getElementById('btn-submit-budget');
+            const imgUrlValue = document.getElementById('form-img-url').value.trim();
             const newRef = budgetDbRef.push();
             
             newRef.set({
@@ -716,24 +636,14 @@
                 displayToast();
                 document.getElementById('form-detail').value = '';
                 document.getElementById('form-amount').value = '';
-                document.getElementById('form-file-input').value = '';
+                document.getElementById('form-img-url').value = '';
                 document.getElementById('form-date').valueAsDate = new Date();
-                
-                submitBtn.disabled = false;
-                submitBtn.innerText = "💾 บันทึกข้อมูลและอัปโหลดรูปภาพ";
             });
         }
 
         function deleteBudgetRow(key) {
             if(!isEditMode) return;
             if(confirm("ยืนยันที่จะลบรายการบัญชีนี้ใช่หรือไม่?")) {
-                const currentItem = cloudBudgetData[key];
-                if(currentItem && currentItem.imgUrl && currentItem.imgUrl.includes("firebase")) {
-                    try {
-                        const fileRef = storage.refFromURL(currentItem.imgUrl);
-                        fileRef.delete().catch(err => console.log("Storage file delete skip"));
-                    } catch(e) { console.log("Not a direct firebase storage URL"); }
-                }
                 budgetDbRef.child(key).remove().then(() => displayToast());
             }
         }

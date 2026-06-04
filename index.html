@@ -135,7 +135,7 @@
         }
         .input-task:focus, .textarea-progress:focus { border-color: var(--secondary); background-color: #fff; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
         
-        /* Time Input Design (บังคับแสดงผลแบบ 24 ชั่วโมง) */
+        /* Time Input Design (24-Hour format) */
         .time-picker-box { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
         .input-time-real { padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; font-family: 'Chakra Petch', sans-serif; width: 95px; background-color: #f8fafc; }
         .input-time-real:focus { border-color: var(--secondary); background-color: #fff; outline: none; }
@@ -181,7 +181,7 @@
     <header>
         <div class="container">
             <h1>🏆 World GreenMech Contest 2026</h1>
-            <p><span class="live-indicator"></span> แดชบอร์ดเปรียบเทียบเวลาซ้อมระบบเรียลไทม์ (24-Hour Format) ทีม PT Avatar GreenTech</p>
+            <p><span class="live-indicator"></span> แดชบอร์ดเรียลไทม์ ทีม PT Avatar GreenTech (เริ่มซ้อม จันทร์ที่ 8 มิ.ย.)</p>
             <div id="user-mode-tag" class="mode-badge mode-viewer-style">👁️ โหมดผู้เข้าชม (อ่านอย่างเดียว)</div>
         </div>
     </header>
@@ -199,11 +199,11 @@
             </div>
             <div class="stat-card">
                 <h3>จำนวนวันที่ซ้อมเสร็จ</h3>
-                <div class="value" id="stat-days-count">0 / 57 วัน</div>
+                <div class="value" id="stat-days-count">0 / 60 วัน</div>
             </div>
             <div class="stat-card">
                 <h3>ชั่วโมงซ้อมสะสมจริง</h3>
-                <div class="value" id="stat-hours-count">0 / 200.5 ชม.</div>
+                <div class="value" id="stat-hours-count">0 / 224.5 ชม.</div>
             </div>
         </div>
 
@@ -247,67 +247,71 @@
         const database = firebase.database();
         const dbRef = database.ref('greenmech_training_data');
 
+        // เริ่มตารางใหม่ตั้งแต่วันจันทร์ที่ 8 มิ.ย. 2569 ขยายช่วงเวลาซ้อมให้ครอบคลุมแผนการพัฒนาอย่างละเอียด
         const rawSchedule = [
-            { id: 1, date: "11 มิ.ย.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 2, date: "12 มิ.ย.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 3, date: "13 มิ.ย.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 4, date: "14 มิ.ย.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 5, date: "15 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 6, date: "16 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 7, date: "17 มิ.ย.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 8, date: "18 มิ.ย.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 9, date: "19 มิ.ย.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 10, date: "20 มิ.ย.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 11, date: "21 มิ.ย.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "1. วางแผนและออกแบบ" },
-            { id: 12, date: "22 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 13, date: "23 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 14, date: "24 มิ.ย.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 15, date: "25 มิ.ย.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 16, date: "26 มิ.ย.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 17, date: "27 มิ.ย.", day: "เสาร์", time: "15:30-17:30", hours: 2.0, note: "เรียน", phase: "2. สร้างและพัฒนา" },
-            { id: 18, date: "28 มิ.ย.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 19, date: "29 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 20, date: "30 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 21, date: "1 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 22, date: "2 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 23, date: "3 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 24, date: "4 ก.ค.", day: "เสาร์", time: "15:30-17:30", hours: 2.0, note: "เรียน", phase: "2. สร้างและพัฒนา" },
-            { id: 25, date: "5 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 26, date: "6 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 27, date: "7 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 28, date: "8 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 29, date: "9 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 30, date: "10 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 31, date: "11 ก.ค.", day: "เสาร์", time: "15:30-17:30", hours: 2.0, note: "เรียน", phase: "2. สร้างและพัฒนา" },
-            { id: 32, date: "12 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 33, date: "13 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 34, date: "14 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
-            { id: 35, date: "15 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "3. ทดสอบและปรับปรุง" },
-            { id: 36, date: "16 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 37, date: "17 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "3. ทดสอบและปรับปรุง" },
-            { id: 38, date: "18 ก.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "3. ทดสอบและปรับปรุง" },
-            { id: 39, date: "19 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "3. ทดสอบและปรับปรุง" },
-            { id: 40, date: "20 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 41, date: "21 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 42, date: "22 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 43, date: "23 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 44, date: "24 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 45, date: "25 ก.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 46, date: "26 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 47, date: "27 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 48, date: "28 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
-            { id: 49, date: "29 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
-            { id: 50, date: "30 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
-            { id: 51, date: "31 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
-            { id: 52, date: "1 ส.ค.", day: "เสาร์", time: "15:30-17:30", hours: 2.0, note: "เรียน", phase: "4. ซ้อมเสมือนแข่ง" },
-            { id: 53, date: "2 ส.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
-            { id: 54, date: "3 ส.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
-            { id: 55, date: "4 ส.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
-            { id: 56, date: "5 ส.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
-            { id: 57, date: "6 ส.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "ซ้อมวันสุดท้าย", phase: "4. ซ้อมเสมือนแข่ง" },
-            { id: 58, date: "7 ส.ค.", day: "ศุกร์", time: "เดินทาง", hours: 0, note: "เตรียมแข่งขัน", phase: "✈️ เดินทาง" },
-            { id: 59, date: "8 ส.ค.", day: "เสาร์", time: "แข่งขัน", hours: 0, note: "วันแข่งขัน", phase: "🔥 แข่งขัน" },
-            { id: 60, date: "9 ส.ค.", day: "อาทิตย์", time: "แข่งขัน", hours: 0, note: "วันแข่งขัน", phase: "🔥 แข่งขัน" }
+            { id: 1, date: "8 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 2, date: "9 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 3, date: "10 มิ.ย.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 4, date: "11 มิ.ย.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 5, date: "12 มิ.ย.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 6, date: "13 มิ.ย.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 7, date: "14 มิ.ย.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 8, date: "15 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 9, date: "16 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 10, date: "17 มิ.ย.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 11, date: "18 มิ.ย.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 12, date: "19 มิ.ย.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "1. วางแผนและออกแบบ" },
+            { id: 13, date: "20 มิ.ย.", day: "เสาร์", time: "15:30-17:30", hours: 2.0, note: "เรียน", phase: "2. สร้างและพัฒนา" },
+            { id: 14, date: "21 มิ.ย.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 15, date: "22 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 16, date: "23 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 17, date: "24 มิ.ย.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 18, date: "25 มิ.ย.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 19, date: "26 มิ.ย.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 20, date: "27 มิ.ย.", day: "เสาร์", time: "15:30-17:30", hours: 2.0, note: "เรียน", phase: "2. สร้างและพัฒนา" },
+            { id: 21, date: "28 มิ.ย.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 22, date: "29 มิ.ย.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 23, date: "30 มิ.ย.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 24, date: "1 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 25, date: "2 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 26, date: "3 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 27, date: "4 ก.ค.", day: "เสาร์", time: "15:30-17:30", hours: 2.0, note: "เรียน", phase: "2. สร้างและพัฒนา" },
+            { id: 28, date: "5 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 29, date: "6 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 30, date: "7 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 31, date: "8 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 32, date: "9 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 33, date: "10 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 34, date: "11 ก.ค.", day: "เสาร์", time: "15:30-17:30", hours: 2.0, note: "เรียน", phase: "2. สร้างและพัฒนา" },
+            { id: 35, date: "12 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 36, date: "13 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 37, date: "14 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "2. สร้างและพัฒนา" },
+            { id: 38, date: "15 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 39, date: "16 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 40, date: "17 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 41, date: "18 ก.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 42, date: "19 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 43, date: "20 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 44, date: "21 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบandปรับปรุง" },
+            { id: 45, date: "22 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 46, date: "23 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 47, date: "24 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 48, date: "25 ก.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 49, date: "26 ก.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 50, date: "27 ก.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 51, date: "28 ก.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "3. ทดสอบและปรับปรุง" },
+            { id: 52, date: "29 ก.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
+            { id: 53, date: "30 ก.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
+            { id: 54, date: "31 ก.ค.", day: "ศุกร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
+            { id: 55, date: "1 ส.ค.", day: "เสาร์", time: "09:00-17:30", hours: 8.5, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
+            { id: 56, date: "2 ส.ค.", day: "อาทิตย์", time: "09:00-17:30", hours: 8.5, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
+            { id: 57, date: "3 ส.ค.", day: "จันทร์", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
+            { id: 58, date: "4 ส.ค.", day: "อังคาร", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
+            { id: 59, date: "5 ส.ค.", day: "พุธ", time: "15:30-17:30", hours: 2.0, note: "", phase: "4. ซ้อมเสมือนแข่ง" },
+            { id: 60, date: "6 ส.ค.", day: "พฤหัสบดี", time: "15:30-17:30", hours: 2.0, note: "ซ้อมวันสุดท้าย", phase: "4. ซ้อมเสมือนแข่ง" },
+            { id: 61, date: "7 ส.ค.", day: "ศุกร์", time: "เดินทาง", hours: 0, note: "เตรียมแข่งขัน", phase: "✈️ เดินทาง" },
+            { id: 62, date: "8 ส.ค.", day: "เสาร์", time: "แข่งขัน", hours: 0, note: "วันแข่งขัน", phase: "🔥 แข่งขัน" },
+            { id: 63, date: "9 ส.ค.", day: "อาทิตย์", time: "แข่งขัน", hours: 0, note: "วันแข่งขัน", phase: "🔥 แข่งขัน" }
         ];
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -360,7 +364,6 @@
             }, 1000);
         }
 
-        // ฟังก์ชันคำนวณชั่วโมงจากรูปแบบระบบ 24 ชั่วโมง (HH:MM)
         function calculateRealHours(start, end) {
             if (!start || !end) return 0;
             const [startH, startM] = start.split(':').map(Number);
@@ -416,7 +419,6 @@
 
                 let realTimeColHTML = '';
                 if (isEditMode) {
-                    // ช่องกรอกแบบสากล 24 ชม.
                     realTimeColHTML = `
                         <div class="time-picker-box">
                             <span style="font-size:0.8rem; width:30px;">เริ่ม:</span>
@@ -469,7 +471,7 @@
             database.ref('greenmech_training_data/' + id).update({
                 [field]: value
             }).then(() => {
-                showToast("⚡ บันทึกเวลาแบบ 24 ชม. สำเร็จ!");
+                showToast("⚡ บันทึกและคำนวณเวลาเรียบร้อย!");
             });
         }
 
@@ -491,7 +493,7 @@
             document.getElementById('stat-progress-percent').innerText = percent + '%';
             document.getElementById('stat-progress-bar').style.width = percent + '%';
             document.getElementById('stat-days-count').innerText = completedDays + ' / ' + trainingDays.length + ' วัน';
-            document.getElementById('stat-hours-count').innerText = totalActualHours.toFixed(1) + ' / 200.5 ชม.';
+            document.getElementById('stat-hours-count').innerText = totalActualHours.toFixed(1) + ' / 224.5 ชม.';
         }
 
         function showToast(msg) {

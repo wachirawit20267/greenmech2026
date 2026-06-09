@@ -566,10 +566,10 @@
 
                 const isToday = (item.iso === todayStr);
                 
-                // 🔒 ตัวแปรคุมการล็อก: เวลา, รายงานผล, สถานะ จะแก้ได้เฉพาะ "วันนี้" หน้างานเท่านั้น
-                const isActionDisabled = (isEditMode && isToday) ? '' : 'disabled';
+                // 🛠️ ตรรกะคุมล็อกใหม่: ปลดล็อกให้แก้ไข เวลา, ผลการซ้อม และสถานะ ของ "วันนี้" และ "วันในอดีตทั้งหมด" ได้อิสระ ล็อกเฉพาะวันในอนาคต
+                const isActionDisabled = (isEditMode && item.iso <= todayStr) ? '' : 'disabled';
                 
-                // 🔓 ตัวแปรคุมช่อง "งานที่วางแผน": ปลดล็อกให้ทีมงานพิมพ์ได้อิสระ ไม่ว่าจะวันไหนก็ตาม
+                // 🔓 แผนงานล่วงหน้า: ปลดล็อกให้ทีมพิมพ์แพลนงานล่วงหน้าทิ้งไว้ได้ทุกวันตามปกติ
                 const isTaskDisabled = isEditMode ? '' : 'disabled';
                 
                 const actHours = computeDiffHours(nodeState.startTime, nodeState.endTime);
@@ -582,7 +582,7 @@
                 }
 
                 let timeCol = '';
-                if(isEditMode && isToday) {
+                if(isEditMode && item.iso <= todayStr) {
                     timeCol = `
                         <div class="time-picker-box">เริ่ม: <input type="time" class="input-time-real" value="${nodeState.startTime || ''}" onchange="updateCloudTrain(${item.id}, 'startTime', this.value)"></div>
                         <div class="time-picker-box">เลิก: <input type="time" class="input-time-real" value="${nodeState.endTime || ''}" onchange="updateCloudTrain(${item.id}, 'endTime', this.value)"></div>
@@ -596,7 +596,7 @@
                 if (item.iso > todayStr) {
                     lockIndicator = `<br><span style="color:#b45309; font-size:0.7rem; font-weight:600;">📝 แพลนแผนงานไว้ล่วงหน้าได้</span>`;
                 } else if (item.iso < todayStr) {
-                    lockIndicator = `<br><span style="color:var(--text-muted); font-size:0.7rem;">🔒 ปิดเช็คชื่อแล้ว</span>`;
+                    lockIndicator = `<br><span style="color:#0284c7; font-size:0.7rem; font-weight:600;">🔓 ปรับปรุงข้อมูลย้อนหลังได้</span>`;
                 } else {
                     lockIndicator = `<br><span style="color:#10b981; font-size:0.75rem; font-weight:bold;">✨ วันนี้ (เปิดบันทึก)</span>`;
                 }
@@ -607,7 +607,7 @@
                     <td>${timeCol}</td>
                     <td><span class="phase-indicator">${item.phase}</span></td>
                     <td><input type="text" class="form-control" value="${nodeState.task || ''}" placeholder="${isEditMode ? '✍️ พิมพ์แผนงานที่นี่...' : '-'}" ${isTaskDisabled} onchange="updateCloudTrain(${item.id}, 'task', this.value)"></td>
-                    <td><input type="text" class="form-control" value="${nodeState.progress || ''}" placeholder="${(isEditMode && isToday)?'พิมพ์สรุปผลวันนี้...':'-'}" ${isActionDisabled} onchange="updateCloudTrain(${item.id}, 'progress', this.value)"></td>
+                    <td><input type="text" class="form-control" value="${nodeState.progress || ''}" placeholder="${(isEditMode && item.iso <= todayStr)?'พิมพ์สรุปผลการซ้อม...':'-'}" ${isActionDisabled} onchange="updateCloudTrain(${item.id}, 'progress', this.value)"></td>
                     <td>
                         <select class="select-status ${statusClass}" ${isActionDisabled} onchange="updateCloudTrain(${item.id}, 'status', this.value)">
                             <option value="pending" class="status-pending" ${nodeState.status==='pending'?'selected':''}>⏳ ยังไม่เริ่ม</option>
